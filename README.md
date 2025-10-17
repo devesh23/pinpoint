@@ -65,3 +65,4 @@ Next steps
 - Integrate the real backend API and map the real response fields to the UI.
 - Add unit tests and TypeScript typing if converting to a full project.
 - Replace polling with WebSocket or server-sent events for near real-time updates.
+
