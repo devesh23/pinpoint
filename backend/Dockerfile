@@ -1,10 +1,10 @@
-FROM rust:1.72 as planner
+FROM rust:1.82 as planner
 WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
 RUN mkdir src && echo "fn main(){println!(\"dummy\");}" > src/main.rs
 RUN cargo build --release || true
 
-FROM rust:1.72 as builder
+FROM rust:1.82 as builder
 WORKDIR /app
 COPY . .
 RUN cargo build --release

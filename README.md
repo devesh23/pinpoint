@@ -11,6 +11,8 @@ docker compose up --build
 ```
 
 2. Open http://localhost:3000 in your browser for the frontend. The frontend talks to the backend at http://backend:8080 (via compose networking).
+ 
+Note: The frontend default is configured to call `http://backend:8080/positions` when running with `docker compose` (internal service hostname). For local frontend dev use `http://localhost:8080/positions` as the poll URL.
 
 Development (frontend):
 
@@ -65,4 +67,8 @@ Next steps
 - Integrate the real backend API and map the real response fields to the UI.
 - Add unit tests and TypeScript typing if converting to a full project.
 - Replace polling with WebSocket or server-sent events for near real-time updates.
+
+Trilateration
+--
+The frontend now includes a simple least-squares trilateration utility at `frontend/src/triangulation.js`. It converts per-router distances (from the API `beacons` array) into 2D positions. Anchors (router positions) and factory physical dimensions are configured in `frontend/src/App.jsx` — update those values to match your real deployment.
 
