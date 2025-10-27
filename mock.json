@@ -1,0 +1,461 @@
+{
+    "type": "uwb_update",
+    "payload": {
+        "deviceIdHex": "a0ba3e29",
+        "deviceIdDecimal": 2696560169,
+        "numberOfBeacons": 3,
+        "motion": "No Movement",
+        "beacons": [
+            {
+                "major": "0200",
+                "minor": "00e6",
+                "beaconId": "020000e6",
+                "distance": 348,
+                "battery": 100
+            },
+            {
+                "major": "0200",
+                "minor": "00b3",
+                "beaconId": "020000b3",
+                "distance": 415,
+                "battery": 100
+            },
+            {
+                "major": "0200",
+                "minor": "0053",
+                "beaconId": "02000053",
+                "distance": 276,
+                "battery": 100
+            }
+        ],
+        "requestTimestamp": 1761583047374
+    },
+    "ts": 1761583047378
+}
+
+
+{
+    "type": "uwb_update",
+    "payload": {
+        "deviceIdHex": "a0ba3e29",
+        "deviceIdDecimal": 2696560169,
+        "numberOfBeacons": 3,
+        "motion": "No Movement",
+        "beacons": [
+            {
+                "major": "0200",
+                "minor": "0053",
+                "beaconId": "02000053",
+                "distance": 272,
+                "battery": 100
+            },
+            {
+                "major": "0200",
+                "minor": "00e6",
+                "beaconId": "020000e6",
+                "distance": 343,
+                "battery": 100
+            },
+            {
+                "major": "0200",
+                "minor": "00b3",
+                "beaconId": "020000b3",
+                "distance": 343,
+                "battery": 100
+            }
+        ],
+        "requestTimestamp": 1761583077913
+    },
+    "ts": 1761583077918
+}
+
+
+event: hello
+data: {"ok":true,"connectedAt":1761581299046}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":89,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":102,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":37,"battery":100}],"requestTimestamp":1761581587820},"ts":1761581587823}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":87,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":105,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":33,"battery":100}],"requestTimestamp":1761581592890},"ts":1761581592893}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":93,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":102,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":41,"battery":100}],"requestTimestamp":1761581603051},"ts":1761581603055}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":156,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":148,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":84,"battery":100}],"requestTimestamp":1761581623467},"ts":1761581623471}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":151,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":135,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":68,"battery":100}],"requestTimestamp":1761581629428},"ts":1761581629432}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":309,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":270,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":218,"battery":100}],"requestTimestamp":1761581633481},"ts":1761581633486}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":110,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":90,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":165,"battery":100}],"requestTimestamp":1761581641553},"ts":1761581641557}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":93,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":163,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":118,"battery":100}],"requestTimestamp":1761581646655},"ts":1761581646659}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":100,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":129,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":10,"battery":100}],"requestTimestamp":1761581654723},"ts":1761581654727}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":10,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":97,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":128,"battery":100}],"requestTimestamp":1761581659829},"ts":1761581659832}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":10,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":128,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":103,"battery":100}],"requestTimestamp":1761581669987},"ts":1761581669990}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":131,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":101,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":12,"battery":100}],"requestTimestamp":1761581690303},"ts":1761581690307}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":2,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":132,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":98,"battery":100}],"requestTimestamp":1761581732930},"ts":1761581732933}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":101,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":15,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":47,"battery":100}],"requestTimestamp":1761581768541},"ts":1761581768544}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":194,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":272,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":247,"battery":100}],"requestTimestamp":1761581773624},"ts":1761581773627}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":266,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":276,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":305,"battery":100}],"requestTimestamp":1761581777674},"ts":1761581777679}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":246,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":181,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":228,"battery":100}],"requestTimestamp":1761581782740},"ts":1761581782743}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":160,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":231,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":202,"battery":100}],"requestTimestamp":1761581785790},"ts":1761581785795}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":160,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":235,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":231,"battery":100}],"requestTimestamp":1761581790863},"ts":1761581790867}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":174,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":250,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":234,"battery":100}],"requestTimestamp":1761581801020},"ts":1761581801023}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":248,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":197,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":268,"battery":100}],"requestTimestamp":1761581817271},"ts":1761581817275}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":165,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":254,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":232,"battery":100}],"requestTimestamp":1761581821331},"ts":1761581821337}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":257,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":246,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":173,"battery":100}],"requestTimestamp":1761581826408},"ts":1761581826414}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":177,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":254,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":228,"battery":100}],"requestTimestamp":1761581838556},"ts":1761581838559}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":266,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":263,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":192,"battery":100}],"requestTimestamp":1761581848732},"ts":1761581848735}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":255,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":247,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":182,"battery":100}],"requestTimestamp":1761581852790},"ts":1761581852795}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":163,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":228,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":211,"battery":100}],"requestTimestamp":1761581857863},"ts":1761581857866}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":166,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":196,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":128,"battery":100}],"requestTimestamp":1761581868019},"ts":1761581868022}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":186,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":128,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":175,"battery":100}],"requestTimestamp":1761581888359},"ts":1761581888362}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":131,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":27,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":125,"battery":100}],"requestTimestamp":1761581929010},"ts":1761581929014}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":124,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":26,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":136,"battery":100}],"requestTimestamp":1761581936067},"ts":1761581936071}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":140,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":28,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":126,"battery":100}],"requestTimestamp":1761581946264},"ts":1761581946270}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":25,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":128,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":134,"battery":100}],"requestTimestamp":1761581966596},"ts":1761581966601}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":89,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":72,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":118,"battery":100}],"requestTimestamp":1761581995063},"ts":1761581995067}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":151,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":124,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":166,"battery":100}],"requestTimestamp":1761581999126},"ts":1761581999132}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":160,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":110,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":169,"battery":100}],"requestTimestamp":1761582003174},"ts":1761582003178}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":186,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":113,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":200,"battery":100}],"requestTimestamp":1761582008254},"ts":1761582008257}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":134,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":158,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":197,"battery":100}],"requestTimestamp":1761582018417},"ts":1761582018420}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":196,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":135,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":152,"battery":100}],"requestTimestamp":1761582023496},"ts":1761582023499}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":172,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":198,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":212,"battery":100}],"requestTimestamp":1761582028570},"ts":1761582028574}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":131,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":160,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":199,"battery":100}],"requestTimestamp":1761582033643},"ts":1761582033647}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":154,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":193,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":117,"battery":100}],"requestTimestamp":1761582043796},"ts":1761582043799}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":47,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":107,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":57,"battery":100}],"requestTimestamp":1761582047859},"ts":1761582047867}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":140,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":68,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":128,"battery":100}],"requestTimestamp":1761582053955},"ts":1761582053958}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":108,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":152,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":65,"battery":100}],"requestTimestamp":1761582059028},"ts":1761582059032}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":65,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":121,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":185,"battery":100}],"requestTimestamp":1761582062071},"ts":1761582062077}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":125,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":159,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":70,"battery":100}],"requestTimestamp":1761582067139},"ts":1761582067143}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":224,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":235,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":162,"battery":100}],"requestTimestamp":1761582077306},"ts":1761582077311}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":271,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":264,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":207,"battery":100}],"requestTimestamp":1761582080345},"ts":1761582080350}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":163,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":195,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":106,"battery":100}],"requestTimestamp":1761582085418},"ts":1761582085422}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":0,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":98,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":97,"battery":100}],"requestTimestamp":1761582090500},"ts":1761582090505}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":103,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":91,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":3,"battery":100}],"requestTimestamp":1761582095576},"ts":1761582095580}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":92,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":69,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":2,"battery":100}],"requestTimestamp":1761582105735},"ts":1761582105739}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":106,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":0,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":92,"battery":100}],"requestTimestamp":1761582126073},"ts":1761582126077}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":92,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":84,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":0,"battery":100}],"requestTimestamp":1761582166768},"ts":1761582166771}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":2,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":1,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":90,"battery":100}],"requestTimestamp":1761582248104},"ts":1761582248107}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":95,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":75,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":6,"battery":100}],"requestTimestamp":1761582330515},"ts":1761582330519}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":105,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":5,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":93,"battery":100}],"requestTimestamp":1761582335589},"ts":1761582335593}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":108,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":2,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":91,"battery":100}],"requestTimestamp":1761582345750},"ts":1761582345753}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":106,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":1,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":91,"battery":100}],"requestTimestamp":1761582366085},"ts":1761582366090}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":3,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":92,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":118,"battery":100}],"requestTimestamp":1761582406767},"ts":1761582406771}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":124,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":3,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":94,"battery":100}],"requestTimestamp":1761582488140},"ts":1761582488144}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":0,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":92,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":103,"battery":100}],"requestTimestamp":1761582546855},"ts":1761582546860}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":105,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":4,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":95,"battery":100}],"requestTimestamp":1761582551408},"ts":1761582551413}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":2,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":109,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":95,"battery":100}],"requestTimestamp":1761582561550},"ts":1761582561555}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":109,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":1,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":93,"battery":100}],"requestTimestamp":1761582581886},"ts":1761582581893}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":2,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":91,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":92,"battery":100}],"requestTimestamp":1761582622575},"ts":1761582622579}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":81,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":270,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":62,"battery":100}],"requestTimestamp":1761582703935},"ts":1761582703940}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":262,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":316,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":329,"battery":100}],"requestTimestamp":1761582866631},"ts":1761582866635}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":363,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":373,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":226,"battery":100}],"requestTimestamp":1761582894086},"ts":1761582894090}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":369,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":555,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":90,"battery":100}],"requestTimestamp":1761582898148},"ts":1761582898154}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":94,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":566,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":364,"battery":100}],"requestTimestamp":1761582903211},"ts":1761582903214}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":389,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":107,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":538,"battery":100}],"requestTimestamp":1761582913374},"ts":1761582913377}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":556,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":367,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":126,"battery":100}],"requestTimestamp":1761582916414},"ts":1761582916420}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":350,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":309,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":76,"battery":100}],"requestTimestamp":1761582920466},"ts":1761582920471}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":87,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":373,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":354,"battery":100}],"requestTimestamp":1761582924524},"ts":1761582924528}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":94,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":363,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":372,"battery":100}],"requestTimestamp":1761582929604},"ts":1761582929607}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":357,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":90,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":371,"battery":100}],"requestTimestamp":1761582939763},"ts":1761582939766}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":447,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":167,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":281,"battery":100}],"requestTimestamp":1761582944844},"ts":1761582944848}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":538,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":90,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":295,"battery":100}],"requestTimestamp":1761582948898},"ts":1761582948903}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":522,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":371,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":106,"battery":100}],"requestTimestamp":1761582953976},"ts":1761582953979}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":407,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":112,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":555,"battery":100}],"requestTimestamp":1761582959045},"ts":1761582959049}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":551,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":389,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":117,"battery":100}],"requestTimestamp":1761582964123},"ts":1761582964126}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":584,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":418,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":4,"battery":100}],"requestTimestamp":1761582968175},"ts":1761582968182}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":2,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":113,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":396,"battery":100}],"requestTimestamp":1761582974254},"ts":1761582974257}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":2,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":404,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":123,"battery":100}],"requestTimestamp":1761582978310},"ts":1761582978315}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":574,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":397,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":128,"battery":100}],"requestTimestamp":1761582983405},"ts":1761582983408}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":560,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":387,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":110,"battery":100}],"requestTimestamp":1761582993568},"ts":1761582993571}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":157,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":492,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":281,"battery":100}],"requestTimestamp":1761583013898},"ts":1761583013901}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":259,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":230,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":481,"battery":100}],"requestTimestamp":1761583031187},"ts":1761583031190}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":411,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":317,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":185,"battery":100}],"requestTimestamp":1761583036253},"ts":1761583036257}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":347,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":401,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":265,"battery":100}],"requestTimestamp":1761583040314},"ts":1761583040320}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":348,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":415,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":276,"battery":100}],"requestTimestamp":1761583047374},"ts":1761583047378}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":327,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":283,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":357,"battery":100}],"requestTimestamp":1761583057573},"ts":1761583057577}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":272,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":343,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":343,"battery":100}],"requestTimestamp":1761583077913},"ts":1761583077918}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":347,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":260,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":468,"battery":100}],"requestTimestamp":1761583105370},"ts":1761583105373}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":396,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":265,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":346,"battery":100}],"requestTimestamp":1761583110436},"ts":1761583110439}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":264,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":346,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":393,"battery":100}],"requestTimestamp":1761583122594},"ts":1761583122598}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":340,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":274,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":386,"battery":100}],"requestTimestamp":1761583142962},"ts":1761583142966}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":338,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":401,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":285,"battery":100}],"requestTimestamp":1761583183618},"ts":1761583183622}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":273,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":396,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":343,"battery":100}],"requestTimestamp":1761583264991},"ts":1761583264995}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":377,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":337,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":259,"battery":100}],"requestTimestamp":1761583407412},"ts":1761583407417}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":388,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":492,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":320,"battery":100}],"requestTimestamp":1761583414517},"ts":1761583414520}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":315,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":305,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":361,"battery":100}],"requestTimestamp":1761583419600},"ts":1761583419604}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":337,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":255,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":396,"battery":100}],"requestTimestamp":1761583424677},"ts":1761583424680}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":387,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":339,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":265,"battery":100}],"requestTimestamp":1761583429749},"ts":1761583429753}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":266,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":348,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":407,"battery":100}],"requestTimestamp":1761583438896},"ts":1761583438900}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":382,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":252,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":342,"battery":100}],"requestTimestamp":1761583443966},"ts":1761583443970}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":324,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":333,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":309,"battery":100}],"requestTimestamp":1761583449049},"ts":1761583449053}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":296,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":306,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":304,"battery":100}],"requestTimestamp":1761583458141},"ts":1761583458145}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":287,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":305,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":306,"battery":100}],"requestTimestamp":1761583463354},"ts":1761583463358}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":322,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":311,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":350,"battery":100}],"requestTimestamp":1761583468291},"ts":1761583468295}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":294,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":365,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":307,"battery":100}],"requestTimestamp":1761583473373},"ts":1761583473375}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":334,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":234,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":350,"battery":100}],"requestTimestamp":1761583480484},"ts":1761583480487}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":342,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":242,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":352,"battery":100}],"requestTimestamp":1761583485551},"ts":1761583485554}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":273,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":403,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":366,"battery":100}],"requestTimestamp":1761583488594},"ts":1761583488599}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":383,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":289,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":415,"battery":100}],"requestTimestamp":1761583493668},"ts":1761583493671}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":371,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":377,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":254,"battery":100}],"requestTimestamp":1761583498742},"ts":1761583498746}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":370,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":256,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":379,"battery":100}],"requestTimestamp":1761583503827},"ts":1761583503831}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":382,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":257,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":365,"battery":100}],"requestTimestamp":1761583513988},"ts":1761583513992}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":351,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":265,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":360,"battery":100}],"requestTimestamp":1761583534331},"ts":1761583534335}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":363,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":272,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":359,"battery":100}],"requestTimestamp":1761583575004},"ts":1761583575007}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":373,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":235,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":354,"battery":100}],"requestTimestamp":1761583617719},"ts":1761583617722}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":407,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":318,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":351,"battery":100}],"requestTimestamp":1761583624828},"ts":1761583624832}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":402,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":355,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":315,"battery":100}],"requestTimestamp":1761583629902},"ts":1761583629905}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":324,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":387,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":266,"battery":100}],"requestTimestamp":1761583640064},"ts":1761583640068}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":2,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":326,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":431,"battery":100}],"requestTimestamp":1761583645118},"ts":1761583645124}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":263,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":435,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":331,"battery":100}],"requestTimestamp":1761583650206},"ts":1761583650210}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":261,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":333,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":388,"battery":100}],"requestTimestamp":1761583660367},"ts":1761583660371}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":441,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":258,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":329,"battery":100}],"requestTimestamp":1761583680889},"ts":1761583680895}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":257,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":335,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":408,"battery":100}],"requestTimestamp":1761583685777},"ts":1761583685784}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":430,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":262,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":368,"battery":100}],"requestTimestamp":1761583690872},"ts":1761583690875}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":335,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":263,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":404,"battery":100}],"requestTimestamp":1761583701004},"ts":1761583701007}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":367,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":327,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":278,"battery":100}],"requestTimestamp":1761583708117},"ts":1761583708120}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":273,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":411,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":315,"battery":100}],"requestTimestamp":1761583713190},"ts":1761583713194}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":63,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":279,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":363,"battery":100}],"requestTimestamp":1761583723356},"ts":1761583723360}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":66,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":148,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":159,"battery":100}],"requestTimestamp":1761583743690},"ts":1761583743693}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":58,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":157,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":150,"battery":100}],"requestTimestamp":1761583784345},"ts":1761583784347}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":57,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":151,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":154,"battery":100}],"requestTimestamp":1761583865726},"ts":1761583865729}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":56,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":147,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":170,"battery":100}],"requestTimestamp":1761584030463},"ts":1761584030467}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":267,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":295,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":328,"battery":100}],"requestTimestamp":1761584091477},"ts":1761584091480}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":416,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":281,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":184,"battery":100}],"requestTimestamp":1761584095547},"ts":1761584095553}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":77,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":380,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":491,"battery":100}],"requestTimestamp":1761584099606},"ts":1761584099610}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":638,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":535,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":385,"battery":100}],"requestTimestamp":1761584116759},"ts":1761584116764}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":585,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":546,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":375,"battery":100}],"requestTimestamp":1761584116764},"ts":1761584116767}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":280,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":637,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":542,"battery":100}],"requestTimestamp":1761584116764},"ts":1761584116769}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":372,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":545,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":565,"battery":100}],"requestTimestamp":1761584122955},"ts":1761584122959}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":447,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":387,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":547,"battery":100}],"requestTimestamp":1761584130057},"ts":1761584130064}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":556,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":492,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":397,"battery":100}],"requestTimestamp":1761584137171},"ts":1761584137174}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":412,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":477,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":636,"battery":100}],"requestTimestamp":1761584142245},"ts":1761584142248}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":463,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":642,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":395,"battery":100}],"requestTimestamp":1761584152411},"ts":1761584152415}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":619,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":558,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":363,"battery":100}],"requestTimestamp":1761584172737},"ts":1761584172740}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":386,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":514,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":622,"battery":100}],"requestTimestamp":1761584213421},"ts":1761584213425}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":624,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":602,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":363,"battery":100}],"requestTimestamp":1761584294795},"ts":1761584294798}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":356,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":557,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":619,"battery":100}],"requestTimestamp":1761584457501},"ts":1761584457504}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":2,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":529,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":330,"battery":100}],"requestTimestamp":1761584564254},"ts":1761584564257}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":379,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":145,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":249,"battery":100}],"requestTimestamp":1761584568332},"ts":1761584568338}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":513,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":358,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":93,"battery":100}],"requestTimestamp":1761584572393},"ts":1761584572398}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":90,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":513,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":358,"battery":100}],"requestTimestamp":1761584577472},"ts":1761584577475}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":510,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":355,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":93,"battery":100}],"requestTimestamp":1761584587631},"ts":1761584587635}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":480,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":96,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":365,"battery":100}],"requestTimestamp":1761584607956},"ts":1761584607959}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":368,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":397,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":254,"battery":100}],"requestTimestamp":1761584644518},"ts":1761584644522}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":621,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":336,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":426,"battery":100}],"requestTimestamp":1761584648596},"ts":1761584648602}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":387,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":363,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":417,"battery":100}],"requestTimestamp":1761584653676},"ts":1761584653680}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":373,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":478,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":338,"battery":100}],"requestTimestamp":1761584663836},"ts":1761584663840}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":366,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":449,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":265,"battery":100}],"requestTimestamp":1761584669926},"ts":1761584669929}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":393,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":447,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":269,"battery":100}],"requestTimestamp":1761584676980},"ts":1761584676983}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":268,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":376,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":426,"battery":100}],"requestTimestamp":1761584682198},"ts":1761584682203}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":332,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":380,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":295,"battery":100}],"requestTimestamp":1761584685102},"ts":1761584685106}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":293,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":311,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":413,"battery":100}],"requestTimestamp":1761584690170},"ts":1761584690173}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":306,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":488,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":274,"battery":100}],"requestTimestamp":1761584700338},"ts":1761584700341}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":318,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":272,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":346,"battery":100}],"requestTimestamp":1761584708460},"ts":1761584708463}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":161,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":379,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":278,"battery":100}],"requestTimestamp":1761584713538},"ts":1761584713541}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":345,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":531,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":91,"battery":100}],"requestTimestamp":1761584717594},"ts":1761584717604}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":405,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":259,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":144,"battery":100}],"requestTimestamp":1761584721645},"ts":1761584721648}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":210,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":409,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":416,"battery":100}],"requestTimestamp":1761584725703},"ts":1761584725707}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":704,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":576,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":414,"battery":100}],"requestTimestamp":1761584729763},"ts":1761584729767}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":605,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":404,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":555,"battery":100}],"requestTimestamp":1761584736821},"ts":1761584736824}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":510,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":596,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":394,"battery":100}],"requestTimestamp":1761584747012},"ts":1761584747015}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":414,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":514,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":323,"battery":100}],"requestTimestamp":1761584751065},"ts":1761584751071}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":388,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":0,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":390,"battery":100}],"requestTimestamp":1761584757199},"ts":1761584757202}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":378,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":387,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":0,"battery":100}],"requestTimestamp":1761584762215},"ts":1761584762219}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":394,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":0,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":364,"battery":100}],"requestTimestamp":1761584772388},"ts":1761584772392}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":389,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":1,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":383,"battery":100}],"requestTimestamp":1761584792708},"ts":1761584792712}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":385,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":112,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":313,"battery":100}],"requestTimestamp":1761584798801},"ts":1761584798804}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"Movement Detected","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":535,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":366,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":62,"battery":100}],"requestTimestamp":1761584802859},"ts":1761584802865}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":11,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":661,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":454,"battery":100}],"requestTimestamp":1761584807932},"ts":1761584807936}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":433,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":12,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":760,"battery":100}],"requestTimestamp":1761584818091},"ts":1761584818093}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":2,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":748,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":382,"battery":100}],"requestTimestamp":1761584838425},"ts":1761584838428}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":4,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":371,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":696,"battery":100}],"requestTimestamp":1761584881086},"ts":1761584881090}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"0053","beaconId":"02000053","distance":4,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":725,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":381,"battery":100}],"requestTimestamp":1761584962463},"ts":1761584962466}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":408,"battery":100},{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":766,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":0,"battery":100}],"requestTimestamp":1761585125129},"ts":1761585125133}
+
+data: {"type":"uwb_update","payload":{"deviceIdHex":"a0ba3e29","deviceIdDecimal":2696560169,"numberOfBeacons":3,"motion":"No Movement","beacons":[{"major":"0200","minor":"00b3","beaconId":"020000b3","distance":772,"battery":100},{"major":"0200","minor":"00e6","beaconId":"020000e6","distance":421,"battery":100},{"major":"0200","minor":"0053","beaconId":"02000053","distance":6,"battery":100}],"requestTimestamp":1761585450435},"ts":1761585450439}
+

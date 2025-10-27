@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install frontend deps
+        working-directory: ./frontend
+        run: |
+          npm ci
+
+      - name: Run frontend tests and build
+        working-directory: ./frontend
+        run: |
+          npm run test --silent
+          npm run build --silent
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Build backend
+        run: |
+          cargo build --manifest-path backend/Cargo.toml --verbose
+
+      - name: Start backend
+        run: |
+          nohup cargo run --manifest-path backend/Cargo.toml &
+          # give the server a moment to start
+          sleep 3
+
+      - name: Smoke test backend mock stream
+        run: |
+          # try to fetch some SSE output and ensure we see a uwb_update payload
+          set -o pipefail
+          # request a single SSE event and check for the event header
+          if ! curl --max-time 10 -sS "http://localhost:8080/mock/once?sse=1" | grep -q '^event: uwb_update'; then
+            echo "mock once (sse) did not return expected uwb_update event"
+            exit 1
+          fi

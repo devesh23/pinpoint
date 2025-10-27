@@ -1,3 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <pattern id="smallGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e6eefc" stroke-width="1" />
+    </pattern>
+    <pattern id="bigGrid" width="200" height="200" patternUnits="userSpaceOnUse">
+      <rect width="200" height="200" fill="url(#smallGrid)" />
+      <path d="M200 0 L0 0 0 200" fill="none" stroke="#d7e7ff" stroke-width="2" />
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="#fbfdff" />
+  <rect width="100%" height="100%" fill="url(#bigGrid)" />
+  <g fill="#8aa3ff" fill-opacity="0.06">
+    <rect x="0" y="0" width="1200" height="800" />
+  </g>
+  <text x="24" y="36" font-family="Inter, Arial" font-size="14" fill="#6b7280">Default grid plan</text>
+</svg>
 <svg xmlns='http://www.w3.org/2000/svg' width='1200' height='800'>
   <rect width='100%' height='100%' fill='#f3f4f6'/>
   <text x='40' y='40' font-size='28' fill='#374151'>Factory Layout (Demo)</text>
