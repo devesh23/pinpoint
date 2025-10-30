@@ -1,24 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000" role="img" aria-label="Grid plan">
   <defs>
-    <pattern id="smallGrid" width="40" height="40" patternUnits="userSpaceOnUse">
-      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e6eefc" stroke-width="1" />
+    <pattern id="smallGrid" width="50" height="50" patternUnits="userSpaceOnUse">
+      <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#e8e8e8" stroke-width="1"/>
     </pattern>
-    <pattern id="bigGrid" width="200" height="200" patternUnits="userSpaceOnUse">
-      <rect width="200" height="200" fill="url(#smallGrid)" />
-      <path d="M200 0 L0 0 0 200" fill="none" stroke="#d7e7ff" stroke-width="2" />
+    <pattern id="bigGrid" width="250" height="250" patternUnits="userSpaceOnUse">
+      <rect width="250" height="250" fill="url(#smallGrid)"/>
+      <path d="M 250 0 L 0 0 0 250" fill="none" stroke="#d0d0d0" stroke-width="1.5"/>
     </pattern>
   </defs>
-  <rect width="100%" height="100%" fill="#fbfdff" />
-  <rect width="100%" height="100%" fill="url(#bigGrid)" />
-  <g fill="#8aa3ff" fill-opacity="0.06">
-    <rect x="0" y="0" width="1200" height="800" />
+
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#fafafa"/>
+
+  <!-- Grid -->
+  <rect width="100%" height="100%" fill="url(#smallGrid)"/>
+  <rect width="100%" height="100%" fill="url(#bigGrid)"/>
+
+  <!-- Center axes for reference -->
+  <g stroke="#cfcfcf" stroke-width="1">
+    <line x1="0" y1="500" x2="1000" y2="500" />
+    <line x1="500" y1="0" x2="500" y2="1000" />
   </g>
-  <text x="24" y="36" font-family="Inter, Arial" font-size="14" fill="#6b7280">Default grid plan</text>
-</svg>
-<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='800'>
-  <rect width='100%' height='100%' fill='#f3f4f6'/>
-  <text x='40' y='40' font-size='28' fill='#374151'>Factory Layout (Demo)</text>
-  <rect x='40' y='80' width='500' height='260' fill='#fff' stroke='#e5e7eb'/>
-  <rect x='660' y='80' width='500' height='260' fill='#fff' stroke='#e5e7eb'/>
-  <rect x='40' y='380' width='1120' height='360' fill='#fff' stroke='#e5e7eb'/>
+
+  <!-- Optional subtle border -->
+  <rect x="1" y="1" width="998" height="998" fill="none" stroke="#d8d8d8" stroke-width="2"/>
+
+  <!-- Legend area (optional) -->
+  <g transform="translate(10,980)" font-size="12" fill="#666">
+    <text x="0" y="0">Grid plan - normalized coordinates (0..1) map to this area</text>
+  </g>
 </svg>

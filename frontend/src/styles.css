@@ -18,8 +18,13 @@ body{margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, '
 .dot{position:absolute;width:18px;height:18px;background:#ef4444;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;transform:translate(-50%,-50%);box-shadow:0 6px 18px rgba(239,68,68,0.16);transition:left 0.6s linear, top 0.6s linear}
 .router{position:absolute;width:36px;height:24px;background:#0b5cff;color:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;transform:translate(-50%,-50%);box-shadow:0 6px 18px rgba(11,92,255,0.14);cursor:grab}
 .label{position:absolute;font-size:12px;color:#0b2540;transform:translate(-50%,0);margin-top:6px}
-.pathLayer{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
+.pathLayer{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:2}
 .panel{background:var(--card);padding:12px;border-radius:10px;margin-bottom:12px}
 .muted{color:var(--muted)}
 .json{white-space:pre-wrap;max-height:360px;overflow:auto;background:#fbfdff;padding:8px;border-radius:6px}
 .empty{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted)}
+
+/* Animated segment when a device moves between two points */
+.drawSegment{ stroke-dasharray:1000; stroke-dashoffset:1000; animation: drawLine 600ms linear forwards, fadeLine 900ms linear 600ms forwards }
+@keyframes drawLine{ to { stroke-dashoffset: 0 } }
+@keyframes fadeLine{ from { stroke-opacity: 1 } to { stroke-opacity: 0 } }

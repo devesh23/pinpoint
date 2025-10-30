@@ -25,6 +25,7 @@ function App(){
   const [employees, setEmployees] = useState([])
   const [image, setImage] = useState(null)
   const imgRef = useRef()
+  const planRef = useRef()
   const pollRef = useRef()
   const streamControllerRef = useRef(null)
   const [view, setView] = useState('home')
@@ -55,9 +56,20 @@ function App(){
   const smoothingAlpha = 0.45
   const [smoothingMethod, setSmoothingMethod] = useState(()=>{ try{ const s=localStorage.getItem('smoothingMethod'); return s||'ema' }catch(e){return 'ema'} })
   const kalmanRef = useRef({})
+  const MAX_PATH_POINTS = 500
 
   // helpers
   const anchorsInMeters = anchors.map(a=>({ beaconId: a.beaconId, x: a.x * factoryWidthMeters, y: a.y * factoryHeightMeters }))
+
+  // Append a normalized point (0..1) to device path history
+  function pushDevicePoint(deviceId, nx, ny){
+    if(!deviceId || isNaN(nx) || isNaN(ny)) return
+    setPaths(prev => {
+      const arr = prev[deviceId] ? prev[deviceId].concat([{ x: nx, y: ny, t: Date.now() }]) : [{ x: nx, y: ny, t: Date.now() }]
+      const sliced = arr.length > MAX_PATH_POINTS ? arr.slice(arr.length - MAX_PATH_POINTS) : arr
+      return { ...prev, [deviceId]: sliced }
+    })
+  }
 
   useEffect(()=>{
     // save anchors and factory sizes
@@ -174,8 +186,8 @@ function App(){
    */
   function onPlanClick(e){
     if(!anchorMode) return
-    if(!imgRef.current) return
-    const rect = imgRef.current.getBoundingClientRect()
+    if(!planRef.current) return
+    const rect = planRef.current.getBoundingClientRect()
     const cx = (e.clientX - rect.left) / rect.width
     const cy = (e.clientY - rect.top) / rect.height
     const beaconId = window.prompt('Enter beaconId for this anchor (e.g. 020000b3):')
@@ -189,14 +201,16 @@ function App(){
    */
   function startAnchorDrag(i, e){
     e.preventDefault();
+    // use the plan container rect for robust coordinates (image may resize/load)
     const onMove = (ev)=>{
-      if(!imgRef.current) return
-      const rect = imgRef.current.getBoundingClientRect()
-      const nx = Math.max(0,Math.min(1,(ev.clientX - rect.left)/rect.width))
-      const ny = Math.max(0,Math.min(1,(ev.clientY - rect.top)/rect.height))
-      setAnchors(prev => prev.map((it, idx)=> idx===i ? { ...it, x: nx, y: ny } : it))
+      if(!planRef.current) return
+  const rect = planRef.current.getBoundingClientRect()
+  const nx = Math.max(0,Math.min(1,(ev.clientX - rect.left)/rect.width))
+  const ny = Math.max(0,Math.min(1,(ev.clientY - rect.top)/rect.height))
+  setAnchors(prev => prev.map((it, idx)=> idx===i ? { ...it, x: nx, y: ny } : it))
     }
-    const onUp = ()=>{ window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp) }
+    const onUp = ()=>{ window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); document.body.style.cursor = '' }
+    document.body.style.cursor = 'grabbing'
     window.addEventListener('mousemove', onMove)
     window.addEventListener('mouseup', onUp)
   }
@@ -220,36 +234,28 @@ function App(){
     const norm = { x: pos.x / factoryWidthMeters, y: pos.y / factoryHeightMeters }
 
     // smoothing and path history
+    const id = payload.deviceIdHex || payload.deviceId || 'mock-device'
     if(smoothingMethod === 'kalman'){
       // use per-device Kalman filters
-      const id = payload.deviceIdHex
       if(!kalmanRef.current[id]) kalmanRef.current[id] = new Kalman2D(0.0005, 0.002)
       const kf = kalmanRef.current[id]
       const filtered = kf.update(norm)
       setSmoothed(prev => ({ ...prev, [id]: filtered }))
       setEmployees([{ id, label: deviceNames[id]||id, x: filtered.x, y: filtered.y }])
-      setPaths(prevP => {
-        const cur = prevP[id] || []
-        const appended = [...cur, filtered].slice(-200)
-        return { ...prevP, [id]: appended }
-      })
+      pushDevicePoint(id, filtered.x, filtered.y)
     } else {
       // default EMA
       setSmoothed(prev => {
-        const prevPos = prev[payload.deviceIdHex]
+        const prevPos = prev[id]
         const newPos = prevPos ? {
           x: smoothingAlpha*norm.x + (1-smoothingAlpha)*prevPos.x,
           y: smoothingAlpha*norm.y + (1-smoothingAlpha)*prevPos.y
         } : norm
-        const next = { ...prev, [payload.deviceIdHex]: newPos }
+        const next = { ...prev, [id]: newPos }
         // update rendered employees list (use display name if available)
-        setEmployees([{ id: payload.deviceIdHex, label: deviceNames[payload.deviceIdHex]||payload.deviceIdHex, x: newPos.x, y: newPos.y }])
-        // append to path history
-        setPaths(prevP => {
-          const cur = prevP[payload.deviceIdHex] || []
-          const appended = [...cur, newPos].slice(-200)
-          return { ...prevP, [payload.deviceIdHex]: appended }
-        })
+        setEmployees([{ id, label: deviceNames[id]||id, x: newPos.x, y: newPos.y }])
+        // append to path history via helper
+        pushDevicePoint(id, newPos.x, newPos.y)
         return next
       })
     }
@@ -266,15 +272,44 @@ function App(){
     })
   }
 
+  function clearAllLines(){
+    setPaths({})
+  }
+
   return (
     <div className="app">
-  <TopBar apiKey={apiKey} setApiKey={setApiKey} pollUrl={pollUrl} setPollUrl={setPollUrl} fetchNow={fetchPositions} hideControls={useLive} onOpenAdmin={()=>setView('admin')} />
+  <TopBar onOpenAdmin={()=>setView('admin')} />
 
       <main className="main">
         {view === 'admin' && (
           <section style={{ flex:1 }}>
             <div className="planCard">
-              <Admin anchors={anchors} setAnchors={setAnchors} anchorNames={anchorNames} setAnchorNames={setAnchorNames} deviceNames={deviceNames} setDeviceNames={setDeviceNames} factoryWidthMeters={factoryWidthMeters} factoryHeightMeters={factoryHeightMeters} setFactoryWidthMeters={setFactoryWidthMeters} setFactoryHeightMeters={setFactoryHeightMeters} onClose={()=>setView('home')} />
+              <Admin
+                anchors={anchors}
+                setAnchors={setAnchors}
+                anchorNames={anchorNames}
+                setAnchorNames={setAnchorNames}
+                deviceNames={deviceNames}
+                setDeviceNames={setDeviceNames}
+                factoryWidthMeters={factoryWidthMeters}
+                factoryHeightMeters={factoryHeightMeters}
+                setFactoryWidthMeters={setFactoryWidthMeters}
+                setFactoryHeightMeters={setFactoryHeightMeters}
+                apiKey={apiKey}
+                setApiKey={setApiKey}
+                pollUrl={pollUrl}
+                setPollUrl={setPollUrl}
+                useLive={useLive}
+                setUseLive={setUseLive}
+                smoothingMethod={smoothingMethod}
+                setSmoothingMethod={setSmoothingMethod}
+                connStatus={connStatus}
+                logs={logs}
+                fetchNow={fetchPositions}
+                clearLines={clearLines}
+                clearAllLines={clearAllLines}
+                onClose={()=>setView('home')}
+              />
             </div>
           </section>
         )}
@@ -284,19 +319,35 @@ function App(){
               <input type="file" accept="image/*" onChange={e=>{
                 const f = e.target.files[0]; if(!f) return; setImage(URL.createObjectURL(f))
               }} />
-              <button className="btn muted" onClick={()=>setImage('/default-plan.svg')}>Use Default Plan</button>
+              <button className="btn muted" onClick={()=>setImage('default-plan.svg')}>Use Default Plan</button>
               <button className={"btn" + (anchorMode ? ' muted' : '')} onClick={()=>setAnchorMode(m=>!m)} style={{ marginLeft:8 }}>{anchorMode ? 'Exit Anchor Mode' : 'Enter Anchor Mode'}</button>
             </div>
 
-            <div className="planCanvas" onClick={onPlanClick}>
+            <div className="planCanvas" onClick={onPlanClick} ref={planRef}>
               {image ? <img ref={imgRef} src={image} alt="plan" /> : <div className="empty">No plan loaded</div>}
 
               {/* SVG path layer */}
               <svg className="pathLayer" viewBox="0 0 1000 1000" preserveAspectRatio="none">
                 {Object.keys(paths).map(deviceId => {
-                  const pts = (paths[deviceId]||[]).map(p=> `${(p.x*1000).toFixed(1)},${(p.y*1000).toFixed(1)}`).join(' ')
+                  const arr = paths[deviceId] || []
+                  const pts = arr.map(p=> `${(p.x*1000).toFixed(1)},${(p.y*1000).toFixed(1)}`).join(' ')
+                  const lastIdx = arr.length - 1
+                  const hasSegment = arr.length >= 2
+                  let seg = null
+                  if(hasSegment){
+                    const a = arr[lastIdx-1]
+                    const b = arr[lastIdx]
+                    const x1 = (a.x*1000).toFixed(1), y1 = (a.y*1000).toFixed(1)
+                    const x2 = (b.x*1000).toFixed(1), y2 = (b.y*1000).toFixed(1)
+                    seg = <line key={deviceId+"-seg-"+b.x+"-"+b.y} className="drawSegment" x1={x1} y1={y1} x2={x2} y2={y2} fill="none" stroke="#ef4444" strokeWidth="3" strokeOpacity="0.9" strokeLinecap="round" />
+                  }
                   if(!pts) return null
-                  return <polyline key={deviceId} points={pts} fill="none" stroke="#ef4444" strokeWidth="3" strokeOpacity="0.85" />
+                  return (
+                    <g key={deviceId}>
+                      <polyline points={pts} fill="none" stroke="#ef4444" strokeWidth="3" strokeOpacity="0.85" />
+                      {seg}
+                    </g>
+                  )
                 })}
               </svg>
 
@@ -320,41 +371,8 @@ function App(){
 
         <aside className="right">
           <div className="panel">
-            <h3>Connection</h3>
-            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-              <div style={{ width:12, height:12, borderRadius:6, background: connStatus === 'open' ? '#22c55e' : connStatus === 'connecting' ? '#f59e0b' : '#ef4444' }} />
-              <div>{connStatus}</div>
-            </div>
-            <h4 style={{ marginTop:12 }}>Event Log</h4>
-            <div style={{ maxHeight:120, overflow:'auto', background:'#0b1220', color:'#cbd5e1', padding:8, fontSize:12, borderRadius:6 }}>
-              {logs.length === 0 ? <div className="muted">No events yet</div> : logs.slice().reverse().map((l,i)=>(<div key={i}>{l}</div>))}
-            </div>
-          </div>
-
-          <div className="panel">
             <h3>Latest Positions</h3>
             <pre className="json">{JSON.stringify(employees, null, 2)}</pre>
-          </div>
-
-          <div className="panel">
-            <h4>Mode</h4>
-            <div style={{ display:'flex', gap:8, alignItems:'center', flexDirection:'column' }}>
-              <label style={{ width:'100%' }}><input type="checkbox" checked={useLive} onChange={e=>{
-                const v = e.target.checked; setUseLive(v); setPollUrl(v? 'http://localhost:8080/proxy/uwbStream' : 'http://localhost:8080/mock/stream')
-              }} /> Use Live Stream</label>
-              {!useLive && <div className="muted">Mock streaming active — updates every 30s</div>}
-              {useLive && <div className="muted">Live streaming active (using refresh token flow). Dev controls hidden.</div>}
-              <div style={{ width:'100%', marginTop:6 }}>
-                <label style={{ display:'block', fontSize:13, marginBottom:6 }}>Smoothing:</label>
-                <select value={smoothingMethod} onChange={e=>setSmoothingMethod(e.target.value)} style={{ width: '100%' }}>
-                  <option value="ema">EMA (fast)</option>
-                  <option value="kalman">Kalman (smooth)</option>
-                </select>
-              </div>
-              <div style={{ marginTop:8 }}>
-                <button className="btn muted" onClick={()=>clearLines()}>Clear Lines</button>
-              </div>
-            </div>
           </div>
 
           <div className="panel">

@@ -58,6 +58,7 @@ fn generate_uwb_update(width: f64, height: f64) -> serde_json::Value {
     json!({
         "type": "uwb_update",
         "payload": {
+            // Temporary: will be overridden to a stable ID by callers for consistent demo paths
             "deviceIdHex": format!("{:08x}", rng.gen::<u32>()),
             "deviceIdDecimal": rng.gen::<u32>(),
             "numberOfBeacons": beacons.len(),
@@ -80,6 +81,9 @@ fn sse_event_block(payload: &serde_json::Value) -> String {
 async fn mock_stream() -> Result<HttpResponse, Error> {
     let width = 20.0_f64;
     let height = 10.0_f64;
+    // Use a stable mock device ID so the frontend can draw a continuous path
+    let stable_hex = String::from("a0ba3e29");
+    let stable_dec: u64 = 2696560169;
     // create a stream that yields Bytes of SSE events periodically
     let s = stream! {
         loop {
@@ -95,6 +99,11 @@ async fn mock_stream() -> Result<HttpResponse, Error> {
                         }
                     }
                 }
+            }
+            // Override device ID to a constant for consistent pathing
+            if let Some(payload) = p2.get_mut("payload") {
+                payload["deviceIdHex"] = json!(stable_hex);
+                payload["deviceIdDecimal"] = json!(stable_dec);
             }
             let block = sse_event_block(&p2);
             yield Ok::<Bytes, Error>(Bytes::from(block));
@@ -125,6 +134,12 @@ async fn mock_once(query: web::Query<HashMap<String, String>>) -> Result<HttpRes
                 }
             }
         }
+    }
+
+    // Use the same stable ID here as well
+    if let Some(payload) = p2.get_mut("payload") {
+        payload["deviceIdHex"] = json!("a0ba3e29");
+        payload["deviceIdDecimal"] = json!(2696560169u64);
     }
 
     // If ?sse=1 is requested, return a single SSE event block and close
@@ -176,7 +191,12 @@ async fn positions(_q: web::Query<QueryApiKey>) -> impl Responder {
     // Factory bounds — match with frontend defaults if possible
     let width = 20.0_f64;
     let height = 10.0_f64;
-    let payload = generate_uwb_update(width, height);
+    let mut payload = generate_uwb_update(width, height);
+    // Keep positions endpoint consistent with stable ID for easier demos
+    if let Some(p) = payload.get_mut("payload") {
+        p["deviceIdHex"] = json!("a0ba3e29");
+        p["deviceIdDecimal"] = json!(2696560169u64);
+    }
     HttpResponse::Ok().json(payload)
 }
 

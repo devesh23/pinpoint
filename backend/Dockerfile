@@ -10,6 +10,12 @@ COPY . .
 RUN cargo build --release
 
 FROM debian:bookworm-slim
+
+# Install runtime dependencies (OpenSSL 3 libs and CA certs)
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends ca-certificates libssl3 \
+	&& rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /app/target/release/pinpoint-backend /usr/local/bin/pinpoint-backend
 COPY --from=builder /app/mock_positions.json /mock_positions.json
 EXPOSE 8080

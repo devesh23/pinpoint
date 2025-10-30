@@ -27,6 +27,33 @@ export function trilaterate(anchors, distances){
   if(measurements.length === 0) return null;
   if(measurements.length === 1) return { x: measurements[0].anchor.x, y: measurements[0].anchor.y };
 
+  // special-case: two measurements -> analytic circle intersection
+  if(measurements.length === 2){
+    const m0 = measurements[0];
+    const m1 = measurements[1];
+    const x0 = m0.anchor.x, y0 = m0.anchor.y, r0 = m0.distance;
+    const x1 = m1.anchor.x, y1 = m1.anchor.y, r1 = m1.distance;
+    const dx = x1 - x0, dy = y1 - y0;
+    const d = Math.hypot(dx, dy);
+    if(d < 1e-6) return null;
+    // no intersection: return a point on the line between anchors weighted by distances
+    if(d > r0 + r1 || d < Math.abs(r0 - r1)){
+      const t = r0 / (r0 + r1);
+      return { x: x0 + dx * t, y: y0 + dy * t };
+    }
+    const a = (r0*r0 - r1*r1 + d*d) / (2*d);
+    const px = x0 + (dx * a / d);
+    const py = y0 + (dy * a / d);
+    const h2 = Math.max(0, r0*r0 - a*a);
+    const h = Math.sqrt(h2);
+    const rx = -dy * (h / d);
+    const ry = dx * (h / d);
+    const i1 = { x: px + rx, y: py + ry };
+    const i2 = { x: px - rx, y: py - ry };
+    // deterministic pick: choose the intersection with larger y, fallback to i1
+    return (i1.y > i2.y) ? i1 : i2;
+  }
+
   // initial guess: centroid of anchors weighted by 1/distance
   let x = 0, y = 0, wsum = 0;
   for(const m of measurements){
