@@ -4,6 +4,8 @@ import { trilaterate } from './triangulation'
 import { TopBar } from './components/Layout.jsx'
 import Admin from './components/Admin'
 import { Kalman2D } from './kalman'
+import { Container, Grid, Card, Group, Button, Text, FileInput, NumberInput, Stack, Tooltip, Popover, ActionIcon, Badge } from '@mantine/core'
+import { IconUpload, IconMapPin, IconUsers, IconSettings, IconEdit, IconTrash } from '@tabler/icons-react'
 
 /*
  * App.jsx
@@ -19,7 +21,9 @@ import { Kalman2D } from './kalman'
 function App(){
   const [apiKey, setApiKey] = useState('')
   const [useLive, setUseLive] = useState(false)
-  // pollUrl controls the stream endpoint; default to backend mock stream
+  // pollUrl controls the stream endpoint; default to backend mock stream.
+  // We attempt to load `/config.json` (created by quickstart.sh) so that the
+  // built static site can learn the backend port chosen for docker-compose.
   const [pollUrl, setPollUrl] = useState('http://localhost:8080/mock/stream')
   const [pollIntervalSec, setPollIntervalSec] = useState(30)
   const [employees, setEmployees] = useState([])
@@ -72,6 +76,20 @@ function App(){
   }
 
   useEffect(()=>{
+    // Try to load runtime config (written into frontend/public/config.json by quickstart)
+    (async function(){
+      try{
+        const r = await fetch('/config.json', { cache: 'no-store' })
+        if(r.ok){
+          const cfg = await r.json()
+          if(cfg && cfg.backendPort){
+            setPollUrl(`http://${window.location.hostname}:${cfg.backendPort}/mock/stream`)
+            pushLog(`Loaded config.json backendPort=${cfg.backendPort}`)
+          }
+        }
+      }catch(e){ /* ignore */ }
+    })()
+
     // save anchors and factory sizes
     localStorage.setItem('anchors', JSON.stringify(anchors))
     localStorage.setItem('factoryWidthMeters', String(factoryWidthMeters))
@@ -235,13 +253,13 @@ function App(){
 
     // smoothing and path history
     const id = payload.deviceIdHex || payload.deviceId || 'mock-device'
-    if(smoothingMethod === 'kalman'){
+  if(smoothingMethod === 'kalman'){
       // use per-device Kalman filters
       if(!kalmanRef.current[id]) kalmanRef.current[id] = new Kalman2D(0.0005, 0.002)
       const kf = kalmanRef.current[id]
       const filtered = kf.update(norm)
       setSmoothed(prev => ({ ...prev, [id]: filtered }))
-      setEmployees([{ id, label: deviceNames[id]||id, x: filtered.x, y: filtered.y }])
+      setEmployees([{ id, label: deviceNames[id]||id, x: filtered.x, y: filtered.y, t: Date.now() }])
       pushDevicePoint(id, filtered.x, filtered.y)
     } else {
       // default EMA
@@ -252,8 +270,8 @@ function App(){
           y: smoothingAlpha*norm.y + (1-smoothingAlpha)*prevPos.y
         } : norm
         const next = { ...prev, [id]: newPos }
-        // update rendered employees list (use display name if available)
-        setEmployees([{ id, label: deviceNames[id]||id, x: newPos.x, y: newPos.y }])
+  // update rendered employees list (use display name if available)
+  setEmployees([{ id, label: deviceNames[id]||id, x: newPos.x, y: newPos.y, t: Date.now() }])
         // append to path history via helper
         pushDevicePoint(id, newPos.x, newPos.y)
         return next
@@ -278,12 +296,13 @@ function App(){
 
   return (
     <div className="app">
-  <TopBar onOpenAdmin={()=>setView('admin')} />
+      <TopBar onOpenAdmin={()=>setView('admin')} />
 
-      <main className="main">
+      <Container fluid style={{ padding: 18 }}>
+        <Grid gutter="xl">
         {view === 'admin' && (
-          <section style={{ flex:1 }}>
-            <div className="planCard">
+          <Grid.Col span={12}>
+            <Card radius="md" p="md">
               <Admin
                 anchors={anchors}
                 setAnchors={setAnchors}
@@ -310,18 +329,23 @@ function App(){
                 clearAllLines={clearAllLines}
                 onClose={()=>setView('home')}
               />
-            </div>
-          </section>
+            </Card>
+          </Grid.Col>
         )}
-        <section className="left">
-          <div className="planCard">
-            <div className="planControls">
-              <input type="file" accept="image/*" onChange={e=>{
-                const f = e.target.files[0]; if(!f) return; setImage(URL.createObjectURL(f))
-              }} />
-              <button className="btn muted" onClick={()=>setImage('default-plan.svg')}>Use Default Plan</button>
-              <button className={"btn" + (anchorMode ? ' muted' : '')} onClick={()=>setAnchorMode(m=>!m)} style={{ marginLeft:8 }}>{anchorMode ? 'Exit Anchor Mode' : 'Enter Anchor Mode'}</button>
-            </div>
+
+  <Grid.Col span={12}>
+          <Card radius="md" p="md" shadow="sm">
+            <Group position="apart" mb="sm">
+              <Group spacing="xs">
+                <IconMapPin size={18} />
+                <Text weight={600}>Factory Plan</Text>
+              </Group>
+              <Group>
+                <FileInput placeholder="Upload plan image" accept="image/*" onChange={(f)=>{ if(!f) return; setImage(URL.createObjectURL(f)); }} />
+                <Button variant="light" onClick={()=>setImage('default-plan.svg')}>Use Default Plan</Button>
+                <Button color={anchorMode ? 'red' : 'blue'} onClick={()=>setAnchorMode(m=>!m)}>{anchorMode ? 'Exit Anchor Mode' : 'Enter Anchor Mode'}</Button>
+              </Group>
+            </Group>
 
             <div className="planCanvas" onClick={onPlanClick} ref={planRef}>
               {image ? <img ref={imgRef} src={image} alt="plan" /> : <div className="empty">No plan loaded</div>}
@@ -352,59 +376,84 @@ function App(){
               </svg>
 
               {/* anchors overlay */}
-              {image && anchors.map((a, idx)=> (
-                <div key={a.beaconId + idx} className="router" style={{ position:'absolute', left:`${a.x*100}%`, top:`${a.y*100}%` }} onMouseDown={(e)=>startAnchorDrag(idx,e)}>
-                  <div style={{ fontSize:11 }}>{anchorNames[a.beaconId] || a.beaconId}</div>
-                </div>
-              ))}
+              {image && anchors.map((a, idx)=> {
+                const left = `${a.x*100}%`, top = `${a.y*100}%`
+                return (
+                  <div key={a.beaconId + idx} className="overlay-anchor" style={{ position:'absolute', left, top, transform:'translate(-50%,-50%)', zIndex:4 }}>
+                    <Tooltip label={anchorNames[a.beaconId] || a.beaconId} withArrow position="right">
+                      <ActionIcon size="lg" variant="filled" color="blue" onMouseDown={(e)=>startAnchorDrag(idx,e)} aria-label="drag-anchor">
+                        <IconMapPin size={18} />
+                      </ActionIcon>
+                    </Tooltip>
+                    <Group spacing={6} style={{ marginTop:6, justifyContent:'center' }}>
+                      <ActionIcon size="xs" variant="light" onClick={()=>{ const id = prompt('Edit beaconId', a.beaconId); if(!id) return; setAnchors(prev=> prev.map((p,i)=> i===idx? {...p, beaconId: id } : p)) }} aria-label="edit-anchor">
+                        <IconEdit size={14} />
+                      </ActionIcon>
+                      <ActionIcon size="xs" color="red" variant="light" onClick={()=> setAnchors(prev=> prev.filter((_,i)=> i!==idx)) } aria-label="remove-anchor">
+                        <IconTrash size={14} />
+                      </ActionIcon>
+                    </Group>
+                  </div>
+                )
+              })}
 
               {/* employees overlay */}
-              {image && employees.map(emp=> (
-                <React.Fragment key={emp.id}>
-                  <div className="dot" style={{ left:`${emp.x*100}%`, top:`${emp.y*100}%` }} />
-                  <div className="label" style={{ left:`${emp.x*100}%`, top:`${emp.y*100 + 2}%` }}>{emp.label||emp.id}</div>
-                </React.Fragment>
-              ))}
+              {image && employees.map(emp=> {
+                const left = `${emp.x*100}%`, top = `${emp.y*100}%`
+                const lastSeen = emp.t ? new Date(emp.t).toLocaleTimeString() : new Date().toLocaleTimeString()
+                return (
+                  <div key={emp.id} className="overlay-device" style={{ position:'absolute', left, top, transform:'translate(-50%,-50%)', zIndex:5 }}>
+                    <Popover width={220} position="right" withArrow>
+                      <Popover.Target>
+                        <Badge color="red" radius="xl" variant="filled" style={{ cursor:'pointer' }}>{deviceNames[emp.id]||emp.label||emp.id}</Badge>
+                      </Popover.Target>
+                      <Popover.Dropdown>
+                        <Text size="sm" weight={600}>{deviceNames[emp.id]||emp.label||emp.id}</Text>
+                        <Text size="xs" color="dimmed">Last seen: {lastSeen}</Text>
+                        <Button variant="outline" size="xs" mt="sm" onClick={()=>{ /* future: center map on device */ }}>Center</Button>
+                      </Popover.Dropdown>
+                    </Popover>
+                  </div>
+                )
+              })}
             </div>
-          </div>
-        </section>
+          </Card>
+  </Grid.Col>
 
-        <aside className="right">
-          <div className="panel">
-            <h3>Latest Positions</h3>
-            <pre className="json">{JSON.stringify(employees, null, 2)}</pre>
-          </div>
+  {/* Bottom row: Anchors (left) and Latest Positions (right) to free up vertical space for the plan */}
+  <Grid.Col span={8}>
+    <Card radius="md" p="md">
+      <Group position="apart"><Text weight={600}>Anchors</Text></Group>
+      <Group mt="sm">
+        <NumberInput label="Width (m)" value={factoryWidthMeters} onChange={(v)=>setFactoryWidthMeters(v||0)} />
+        <NumberInput label="Height (m)" value={factoryHeightMeters} onChange={(v)=>setFactoryHeightMeters(v||0)} />
+      </Group>
+      <ol style={{ marginTop: 12 }}>
+        {anchors.map((a,idx)=> (
+          <li key={a.beaconId+idx} style={{ marginBottom:6 }}>
+            <strong>{a.beaconId}</strong> — x: {a.x.toFixed(3)}, y: {a.y.toFixed(3)}
+            <Button variant="subtle" size="xs" style={{ marginLeft:8 }} onClick={()=>{ const id = prompt('Edit beaconId', a.beaconId); if(!id) return; setAnchors(prev=> prev.map((p,i)=> i===idx? {...p, beaconId: id } : p)) }}>Edit</Button>
+            <Button variant="light" size="xs" style={{ marginLeft:6 }} onClick={()=> setAnchors(prev=> prev.filter((_,i)=> i!==idx)) }>Remove</Button>
+          </li>
+        ))}
+      </ol>
+      <Group mt="sm">
+        <Button onClick={()=>{ setAnchors([]); setSmoothed({}); setEmployees([]); kalmanRef.current = {} }}>Clear Anchors</Button>
+        <Button variant="light" onClick={()=>{ kalmanRef.current = {}; pushLog('Kalman filters manually reset') }}>Reset Kalman Filters</Button>
+      </Group>
+    </Card>
+  </Grid.Col>
 
-          <div className="panel">
-            <h4>Anchors</h4>
-            <div style={{ display:'flex', gap:8, marginBottom:8 }}>
-              <label>Width (m): <input type="number" value={factoryWidthMeters} onChange={e=>setFactoryWidthMeters(Number(e.target.value))} style={{ width:80 }} /></label>
-              <label>Height (m): <input type="number" value={factoryHeightMeters} onChange={e=>setFactoryHeightMeters(Number(e.target.value))} style={{ width:80 }} /></label>
-            </div>
-            <ol>
-              {anchors.map((a,idx)=> (
-                <li key={a.beaconId+idx} style={{ marginBottom:6 }}>
-                  <strong>{a.beaconId}</strong> — x: {a.x.toFixed(3)}, y: {a.y.toFixed(3)}
-                  <button className="btn muted" style={{ marginLeft:8 }} onClick={()=>{
-                    // edit beaconId
-                    const id = prompt('Edit beaconId', a.beaconId); if(!id) return; setAnchors(prev=> prev.map((p,i)=> i===idx? {...p, beaconId: id } : p))
-                  }}>Edit</button>
-                  <button className="btn" style={{ marginLeft:6 }} onClick={()=> setAnchors(prev=> prev.filter((_,i)=> i!==idx)) }>Remove</button>
-                </li>
-              ))}
-            </ol>
-            <div style={{ marginTop:8 }}>
-              <button className="btn" onClick={()=>{ setAnchors([]); setSmoothed({}); setEmployees([]); kalmanRef.current = {} }}>Clear Anchors</button>
-              <button className="btn muted" style={{ marginLeft:8 }} onClick={()=>{ kalmanRef.current = {}; pushLog('Kalman filters manually reset') }}>Reset Kalman Filters</button>
-            </div>
-          </div>
-
-          <div className="panel muted">
-            <h4>Help</h4>
-            <p>Toggle <em>Anchor Mode</em>, then click on the plan to add anchors. Drag anchors to adjust. Anchors are stored in localStorage.</p>
-          </div>
-        </aside>
-      </main>
+  <Grid.Col span={4}>
+    <Card radius="md" p="md">
+      <Group position="apart" align="center">
+        <Group spacing="xs"><IconUsers size={18} /><Text weight={600}>Latest Positions</Text></Group>
+      </Group>
+      <pre className="json">{JSON.stringify(employees, null, 2)}</pre>
+    </Card>
+  </Grid.Col>
+      </Grid>
+    </Container>
     </div>
   )
 }

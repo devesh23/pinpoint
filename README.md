@@ -6,6 +6,36 @@ This README documents the architecture, design rationale (why there is a separat
 
 ---
 
+## Requirements (minimum versions)
+
+This project expects the following tools to be available on your development machine or CI environment. The `quickstart.sh` helper will check these versions and prompt to install/upgrade if missing.
+
+- Docker: >= 20.10
+- Docker Compose: prefer the `docker compose` plugin (v2) or `docker-compose` compatible client
+- Rust toolchain (rustc / cargo): >= 1.83.0
+- Node.js: >= 18.0.0 (LTS)
+- npm: >= 8.0.0
+
+If you are using `quickstart.sh`, it can perform local user installs for missing Rust (via `rustup`) and Node.js (via `nvm`) with your confirmation. See `quickstart.sh` for details.
+
+Port overrides
+
+You can customize the host ports that Docker Compose maps to the containers by setting the environment variables `BACKEND_PORT` and `FRONTEND_PORT` before running `docker compose` or `quickstart.sh`. For example:
+
+```bash
+export BACKEND_PORT=8081
+export FRONTEND_PORT=5174
+./quickstart.sh
+```
+
+When using `docker compose` directly you can set them inline:
+
+```bash
+BACKEND_PORT=8081 FRONTEND_PORT=5174 docker compose up --build
+```
+
+---
+
 ## Quickstart (docker)
 
 A quick helper `quickstart.sh` and `Makefile` exist to start the services. The project is configured to work with Docker Compose.

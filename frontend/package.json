@@ -12,7 +12,11 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "axios": "1.4.0",
-    "classnames": "2.3.2"
+    "classnames": "2.3.2",
+    "@mantine/core": "^7.0.0",
+    "@mantine/hooks": "^7.0.0",
+    "@tabler/icons-react": "^2.19.0",
+    "@mantine/notifications": "^7.0.0"
   },
   "devDependencies": {
     "vite": "^5.0.0",

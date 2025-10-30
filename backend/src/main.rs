@@ -15,6 +15,7 @@ use std::collections::HashMap;
 use async_stream::stream;
 use bytes::Bytes;
 use reqwest::Client as ReqwestClient;
+use std::env;
 
 #[derive(Deserialize)]
 struct QueryApiKey {
@@ -240,13 +241,19 @@ mod tests {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     env_logger::init();
-    HttpServer::new(|| {
+    // Read runtime configuration from environment
+    let backend_port: u16 = env::var("BACKEND_PORT").ok()
+        .and_then(|s| s.parse::<u16>().ok())
+        .unwrap_or(8080);
+    let frontend_port_str = env::var("FRONTEND_PORT").unwrap_or_else(|_| "3000".to_string());
+
+    HttpServer::new(move || {
         let cors = Cors::default()
             .allow_any_method()
             .allow_any_header()
             .supports_credentials()
             // allow common dev origins and allow docker-compose service name
-            .allowed_origin("http://localhost:3000")
+            .allowed_origin(&format!("http://localhost:{}", frontend_port_str))
             .allowed_origin("http://localhost")
             .allowed_origin("http://frontend:80");
 
@@ -258,7 +265,7 @@ async fn main() -> std::io::Result<()> {
             .service(mock_once)
             .service(proxy_uwb_stream)
     })
-    .bind(("0.0.0.0", 8080))?
+    .bind(("0.0.0.0", backend_port))?
     .run()
     .await
 }
