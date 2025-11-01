@@ -28,6 +28,9 @@ function App(){
   // resolved pollUrl; if no config is available we fall back to the local
   // mock stream.
   const [pollUrl, setPollUrl] = useState('')
+  // backendPort learned from runtime config.json so we can switch between
+  // mock and live endpoints when the user toggles `useLive`.
+  const [backendPort, setBackendPort] = useState(null)
   const [pollIntervalSec, setPollIntervalSec] = useState(30)
   const [employees, setEmployees] = useState([])
   const [image, setImage] = useState(null)
@@ -100,7 +103,7 @@ function App(){
           if(r.ok){
             const cfg = await r.json()
             if(cfg && cfg.backendPort){
-              setPollUrl(`http://${window.location.hostname}:${cfg.backendPort}/mock/stream`)
+              setBackendPort(cfg.backendPort)
               pushLog(`Loaded config.json backendPort=${cfg.backendPort}`)
               return
             }
@@ -109,12 +112,21 @@ function App(){
       }catch(e){ /* ignore */ }
       // fallback if no config or fetch failed
       if(!cancelled){
-        setPollUrl('http://localhost:8080/mock/stream')
-        pushLog('Using fallback pollUrl http://localhost:8080/mock/stream')
+        setBackendPort(8080)
+        pushLog('Using fallback backendPort=8080')
       }
     })()
     return ()=>{ cancelled = true }
   }, [])
+
+  // When backendPort or useLive changes, derive the pollUrl automatically.
+  useEffect(()=>{
+    if(!backendPort) return
+    const host = window.location.hostname
+    const url = useLive ? `http://${host}:${backendPort}/proxy/uwbStream` : `http://${host}:${backendPort}/mock/stream`
+    setPollUrl(url)
+    pushLog(`pollUrl set to ${url} (useLive=${useLive})`)
+  }, [backendPort, useLive])
 
   // clear per-device Kalman filters when anchors change (recalibration)
   useEffect(()=>{
@@ -313,10 +325,18 @@ function App(){
 
   return (
     <div className="app">
-      <TopBar onOpenAdmin={()=>setView('admin')} />
+  <TopBar onOpenAdmin={()=>setView('admin')} onNavigate={(v)=>setView(v)} currentView={view} backendPort={backendPort} pollUrl={pollUrl} useLive={useLive} setUseLive={setUseLive} connStatus={connStatus} onTestPoll={async ()=>{
+        // quick test helper invoked from topbar
+        try{
+          if(!pollUrl){ pushLog('Test failed: pollUrl empty'); return }
+          pushLog(`Testing ${pollUrl} ...`)
+          const res = await fetch(pollUrl, { method: 'HEAD', cache: 'no-store' })
+          pushLog(`Test result: ${res.status} ${res.statusText}`)
+        }catch(e){ pushLog('Test error: '+ (e.message||String(e))) }
+      }}>
 
-      <Container fluid style={{ padding: 18 }}>
-        <Grid gutter="xl">
+        <Container fluid style={{ padding: 18 }}>
+          <Grid gutter="xl">
         {view === 'admin' && (
           <Grid.Col span={12}>
             <Card radius="md" p="md">
@@ -359,8 +379,8 @@ function App(){
               </Group>
               <Group>
                 <FileInput placeholder="Upload plan image" accept="image/*" onChange={(f)=>{ if(!f) return; setImage(URL.createObjectURL(f)); }} />
-                <Button variant="light" onClick={()=>setImage('default-plan.svg')}>Use Default Plan</Button>
-                <Button color={anchorMode ? 'red' : 'blue'} onClick={()=>setAnchorMode(m=>!m)}>{anchorMode ? 'Exit Anchor Mode' : 'Enter Anchor Mode'}</Button>
+                <Button className="control-pill primary" onClick={()=>setImage('default-plan.svg')}>Use Default Plan</Button>
+                <Button className={`control-pill ${anchorMode? '' : 'primary'}`} onClick={()=>setAnchorMode(m=>!m)}>{anchorMode ? 'Exit Anchor Mode' : 'Enter Anchor Mode'}</Button>
               </Group>
             </Group>
 
@@ -456,7 +476,7 @@ function App(){
       </ol>
       <Group mt="sm">
         <Button onClick={()=>{ setAnchors([]); setSmoothed({}); setEmployees([]); kalmanRef.current = {} }}>Clear Anchors</Button>
-        <Button variant="light" onClick={()=>{ kalmanRef.current = {}; pushLog('Kalman filters manually reset') }}>Reset Kalman Filters</Button>
+  {/* Reset Kalman Filters removed as it caused confusion */}
       </Group>
     </Card>
   </Grid.Col>
@@ -470,7 +490,8 @@ function App(){
     </Card>
   </Grid.Col>
       </Grid>
-    </Container>
+      </Container>
+      </TopBar>
     </div>
   )
 }
