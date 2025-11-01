@@ -21,10 +21,13 @@ import { IconUpload, IconMapPin, IconUsers, IconSettings, IconEdit, IconTrash } 
 function App(){
   const [apiKey, setApiKey] = useState('')
   const [useLive, setUseLive] = useState(false)
-  // pollUrl controls the stream endpoint; default to backend mock stream.
-  // We attempt to load `/config.json` (created by quickstart.sh) so that the
-  // built static site can learn the backend port chosen for docker-compose.
-  const [pollUrl, setPollUrl] = useState('http://localhost:8080/mock/stream')
+  // pollUrl controls the stream endpoint. We do NOT set a default here to
+  // avoid starting a connection to localhost before runtime config is
+  // resolved — that was causing two connections (first to localhost, then to
+  // the real backend). We'll load `/config.json` at mount and then set a
+  // resolved pollUrl; if no config is available we fall back to the local
+  // mock stream.
+  const [pollUrl, setPollUrl] = useState('')
   const [pollIntervalSec, setPollIntervalSec] = useState(30)
   const [employees, setEmployees] = useState([])
   const [image, setImage] = useState(null)
@@ -76,20 +79,6 @@ function App(){
   }
 
   useEffect(()=>{
-    // Try to load runtime config (written into frontend/public/config.json by quickstart)
-    (async function(){
-      try{
-        const r = await fetch('/config.json', { cache: 'no-store' })
-        if(r.ok){
-          const cfg = await r.json()
-          if(cfg && cfg.backendPort){
-            setPollUrl(`http://${window.location.hostname}:${cfg.backendPort}/mock/stream`)
-            pushLog(`Loaded config.json backendPort=${cfg.backendPort}`)
-          }
-        }
-      }catch(e){ /* ignore */ }
-    })()
-
     // save anchors and factory sizes
     localStorage.setItem('anchors', JSON.stringify(anchors))
     localStorage.setItem('factoryWidthMeters', String(factoryWidthMeters))
@@ -98,6 +87,34 @@ function App(){
     localStorage.setItem('deviceNames', JSON.stringify(deviceNames))
     localStorage.setItem('smoothingMethod', smoothingMethod)
   }, [anchors, factoryWidthMeters, factoryHeightMeters, anchorNames, deviceNames])
+
+  // Load runtime config once at mount. Only after resolving config do we set
+  // pollUrl; this prevents the app from starting a connection to the wrong
+  // (localhost) URL and then immediately reconnecting.
+  useEffect(()=>{
+    let cancelled = false
+    ;(async function(){
+      try{
+        const r = await fetch('/config.json', { cache: 'no-store' })
+        if(!cancelled){
+          if(r.ok){
+            const cfg = await r.json()
+            if(cfg && cfg.backendPort){
+              setPollUrl(`http://${window.location.hostname}:${cfg.backendPort}/mock/stream`)
+              pushLog(`Loaded config.json backendPort=${cfg.backendPort}`)
+              return
+            }
+          }
+        }
+      }catch(e){ /* ignore */ }
+      // fallback if no config or fetch failed
+      if(!cancelled){
+        setPollUrl('http://localhost:8080/mock/stream')
+        pushLog('Using fallback pollUrl http://localhost:8080/mock/stream')
+      }
+    })()
+    return ()=>{ cancelled = true }
+  }, [])
 
   // clear per-device Kalman filters when anchors change (recalibration)
   useEffect(()=>{

@@ -248,14 +248,20 @@ async fn main() -> std::io::Result<()> {
     let frontend_port_str = env::var("FRONTEND_PORT").unwrap_or_else(|_| "3000".to_string());
 
     HttpServer::new(move || {
+        // For demos, allow origins dynamically to avoid accidental 400 CORS errors
+        // when the frontend is served from a different host/port. In production
+        // please restrict origins to known hosts.
         let cors = Cors::default()
             .allow_any_method()
             .allow_any_header()
             .supports_credentials()
-            // allow common dev origins and allow docker-compose service name
-            .allowed_origin(&format!("http://localhost:{}", frontend_port_str))
-            .allowed_origin("http://localhost")
-            .allowed_origin("http://frontend:80");
+            .allowed_origin_fn(|origin, _req_head| {
+                // Accept any origin for demo purposes. Log the origin for debugging.
+                if let Ok(s) = std::str::from_utf8(origin.as_bytes()) {
+                    log::debug!("CORS allowing origin: {}", s);
+                }
+                true
+            });
 
         App::new()
             .wrap(middleware::Logger::default())
