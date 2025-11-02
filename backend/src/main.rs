@@ -23,45 +23,65 @@ struct QueryApiKey {
     api_key: Option<String>
 }
 
-// Anchors (routers) coordinates in meters for the mock generator.
-// Make sure these match the frontend anchor configuration for realistic tests.
-fn anchors() -> Vec<(&'static str, f64, f64)> {
+// Anchors (routers) at three corners (top-left, top-right, bottom-left)
+// The bottom-right corner intentionally has no anchor per requirements.
+fn corner_anchors(width: f64, height: f64) -> Vec<(&'static str, f64, f64)> {
     vec![
-        ("020000b3", 1.0, 1.0),
-        ("02000053", 10.0, 1.2),
-        ("020000e6", 7.0, 6.0),
+        ("020000b3", 0.0, 0.0),           // top-left
+        ("02000053", width, 0.0),         // top-right
+        ("020000e6", 0.0, height),        // bottom-left
+    ]
+}
+
+// Deterministic path waypoints based on rectangle size.
+// Middle -> left edge -> right edge -> middle -> bottom edge -> top edge -> middle
+// -> left edge to bottom-left anchor -> along bottom to bottom-right (virtual)
+// -> up right edge to top-right anchor -> along top to top-left anchor -> back to middle.
+fn path_waypoints(width: f64, height: f64) -> Vec<(f64, f64)> {
+    let cx = width / 2.0;
+    let cy = height / 2.0;
+    let tl = (0.0, 0.0);
+    let tr = (width, 0.0);
+    let bl = (0.0, height);
+    // let br = (width, height); // virtual (no anchor) used for edge traversal
+    vec![
+        (cx, cy),          // start center
+        (0.0, cy),         // to left edge
+        (width, cy),       // to right edge
+        (cx, cy),          // back to center
+        (cx, height),      // down to bottom edge
+        (cx, 0.0),         // up to top edge
+        (cx, cy),          // back to center
+        (0.0, cy),         // to left edge
+        bl,                // walk down to bottom-left anchor
+        (width, height),   // along bottom edge to bottom-right (virtual)
+        tr,                // up right edge to top-right anchor
+        tl,                // along top edge to top-left anchor
+        (cx, cy),          // back to center
     ]
 }
 
 // Generate a single uwb_update payload with random device position inside
 // the factory bounds (width x height in meters).
-fn generate_uwb_update(width: f64, height: f64) -> serde_json::Value {
-    let mut rng = thread_rng();
-    let x: f64 = rng.gen_range(0.0..width);
-    let y: f64 = rng.gen_range(0.0..height);
-
+fn generate_uwb_update_for_pos(x: f64, y: f64, width: f64, height: f64) -> serde_json::Value {
     let mut beacons = vec![];
-    for (id, ax, ay) in anchors() {
+    for (id, ax, ay) in corner_anchors(width, height) {
         let dist = ((ax - x).powi(2) + (ay - y).powi(2)).sqrt();
-        // add a small random noise to mimic measurement noise
-        let noise: f64 = rng.gen_range(-0.1..0.1);
-        let dist_noisy = (dist + noise).max(0.0);
         beacons.push(json!({
             "major": "0200",
             "minor": id.get(2..).unwrap_or("0000"),
             "beaconId": id,
-            "distance": (dist_noisy * 100.0).round()/100.0, // round to 2 decimals
+            // distance in meters; conversion to cm is handled by endpoints
+            "distance": dist,
             "battery": 100
         }));
     }
-
     let ts = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
     json!({
         "type": "uwb_update",
         "payload": {
-            // Temporary: will be overridden to a stable ID by callers for consistent demo paths
-            "deviceIdHex": format!("{:08x}", rng.gen::<u32>()),
-            "deviceIdDecimal": rng.gen::<u32>(),
+            "deviceIdHex": "a0ba3e29",
+            "deviceIdDecimal": 2696560169u64,
             "numberOfBeacons": beacons.len(),
             "motion": "No Movement",
             "beacons": beacons,
@@ -79,18 +99,29 @@ fn sse_event_block(payload: &serde_json::Value) -> String {
 
 // Mock streaming endpoint: emits a uwb_update every `interval_ms` milliseconds.
 #[get("/mock/stream")]
-async fn mock_stream() -> Result<HttpResponse, Error> {
-    let width = 20.0_f64;
-    let height = 10.0_f64;
+async fn mock_stream(query: web::Query<HashMap<String, String>>) -> Result<HttpResponse, Error> {
+    let width = query.get("w").and_then(|s| s.parse::<f64>().ok()).unwrap_or(20.0);
+    let height = query.get("h").and_then(|s| s.parse::<f64>().ok()).unwrap_or(10.0);
     // Use a stable mock device ID so the frontend can draw a continuous path
     let stable_hex = String::from("a0ba3e29");
     let stable_dec: u64 = 2696560169;
+    let waypoints = path_waypoints(width, height);
+    let step = 0.05_f64; // fraction per tick along each segment
+    let mut seg_idx: usize = 0;
+    let mut t: f64 = 0.0;
     // create a stream that yields Bytes of SSE events periodically
     let s = stream! {
         loop {
-            let p = generate_uwb_update(width, height);
-            // Convert distances to centimeters to match the live stream format
-            let mut p2 = p.clone();
+            // Interpolate along current segment
+            let (x1, y1) = waypoints[seg_idx];
+            let (x2, y2) = waypoints[(seg_idx + 1) % waypoints.len()];
+            let x = x1 + (x2 - x1) * t;
+            let y = y1 + (y2 - y1) * t;
+            t += step;
+            if t >= 1.0 { t = 0.0; seg_idx = (seg_idx + 1) % waypoints.len(); }
+
+            let mut p2 = generate_uwb_update_for_pos(x, y, width, height);
+            // Convert distances to centimeters to match the live stream format (integers)
             if let Some(beacons) = p2.get_mut("payload").and_then(|pl| pl.get_mut("beacons")) {
                 if let Some(arr) = beacons.as_array_mut() {
                     for b in arr.iter_mut() {
@@ -101,29 +132,34 @@ async fn mock_stream() -> Result<HttpResponse, Error> {
                     }
                 }
             }
-            // Override device ID to a constant for consistent pathing
+            // Ensure device ID is constant (already set in generator but keep for clarity)
             if let Some(payload) = p2.get_mut("payload") {
                 payload["deviceIdHex"] = json!(stable_hex);
                 payload["deviceIdDecimal"] = json!(stable_dec);
             }
             let block = sse_event_block(&p2);
             yield Ok::<Bytes, Error>(Bytes::from(block));
-            // wait 3 seconds between mock events for a smoother demo
-            actix_web::rt::time::sleep(std::time::Duration::from_secs(3)).await;
+            // faster updates for smoother path
+            actix_web::rt::time::sleep(std::time::Duration::from_millis(600)).await;
         }
     };
 
     Ok(HttpResponse::Ok()
         .insert_header(("Content-Type", "text/event-stream"))
+        .insert_header(("Cache-Control", "no-cache"))
+        .insert_header(("Connection", "keep-alive"))
+        // disable nginx proxy buffering if present
+        .insert_header(("X-Accel-Buffering", "no"))
         .streaming(s))
 }
 
 // Single-shot mock endpoint: emits one `uwb_update` payload (distances in cm)
 #[get("/mock/once")]
 async fn mock_once(query: web::Query<HashMap<String, String>>) -> Result<HttpResponse, Error> {
-    let width = 20.0_f64;
-    let height = 10.0_f64;
-    let p = generate_uwb_update(width, height);
+    let width = query.get("w").and_then(|s| s.parse::<f64>().ok()).unwrap_or(20.0);
+    let height = query.get("h").and_then(|s| s.parse::<f64>().ok()).unwrap_or(10.0);
+    let cx = width/2.0; let cy = height/2.0;
+    let p = generate_uwb_update_for_pos(cx, cy, width, height);
     // Convert distances to centimeters to match the live stream format
     let mut p2 = p.clone();
     if let Some(beacons) = p2.get_mut("payload").and_then(|pl| pl.get_mut("beacons")) {
@@ -149,6 +185,9 @@ async fn mock_once(query: web::Query<HashMap<String, String>>) -> Result<HttpRes
             let block = sse_event_block(&p2);
             return Ok(HttpResponse::Ok()
                 .insert_header(("Content-Type", "text/event-stream"))
+                .insert_header(("Cache-Control", "no-cache"))
+                .insert_header(("Connection", "keep-alive"))
+                .insert_header(("X-Accel-Buffering", "no"))
                 .body(block));
         }
     }
@@ -184,15 +223,18 @@ async fn proxy_uwb_stream() -> Result<HttpResponse, Error> {
 
     Ok(HttpResponse::Ok()
         .insert_header(("Content-Type", "text/event-stream"))
+        .insert_header(("Cache-Control", "no-cache"))
+        .insert_header(("Connection", "keep-alive"))
+        .insert_header(("X-Accel-Buffering", "no"))
         .streaming(s))
 }
 
 #[get("/positions")]
 async fn positions(_q: web::Query<QueryApiKey>) -> impl Responder {
-    // Factory bounds — match with frontend defaults if possible
+    // Factory bounds — default values; provide center snapshot
     let width = 20.0_f64;
     let height = 10.0_f64;
-    let mut payload = generate_uwb_update(width, height);
+    let mut payload = generate_uwb_update_for_pos(width/2.0, height/2.0, width, height);
     // Keep positions endpoint consistent with stable ID for easier demos
     if let Some(p) = payload.get_mut("payload") {
         p["deviceIdHex"] = json!("a0ba3e29");

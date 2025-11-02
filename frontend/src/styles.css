@@ -1,6 +1,6 @@
 :root{ --bg:#f6efe6; --card:#fffaf2; --muted:#6b5e4a; --accent:#8b6b3b }
 *{box-sizing:border-box}
-.topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;background:linear-gradient(90deg,#fffaf2,#f6efe6);border-bottom:1px solid rgba(0,0,0,0.04);position:fixed;left:72px;right:0;top:0;z-index:60}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:linear-gradient(90deg,#fffaf2,#f6efe6);border-bottom:1px solid rgba(0,0,0,0.04);position:fixed;left:72px;right:0;top:0;z-index:60;width:100%}
 .topbar h1{margin:0;font-size:18px}
 .controls{display:flex;gap:10px;align-items:center}
 .input{padding:8px 10px;border:1px solid #dbeafe;border-radius:8px}
@@ -13,7 +13,7 @@
 .planCard{background:var(--card);border-radius:12px;padding:8px;box-shadow:0 6px 18px rgba(139,107,59,0.06)}
 .planControls{display:flex;gap:8px;align-items:center;margin-bottom:10px}
 .planCanvas{position:relative;height:68vh;border-radius:8px;overflow:hidden;background:linear-gradient(180deg,#fffaf2,#f6efe6);border:1px solid rgba(139,107,59,0.08)}
-.planCanvas img{position:absolute;left:0;top:0;right:0;bottom:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:0}
+.planCanvas img{position:absolute;left:0;top:0;right:0;bottom:0;width:100%;height:100%;object-fit:contain;object-position:center;z-index:0;background:transparent}
 /* If the plan is inlined as an <svg> instead of an <img>, make it fill the canvas too */
 .planCanvas svg{position:absolute;left:0;top:0;width:100%;height:100%;z-index:0}
 /* subtle grid overlay to aid placement */
@@ -33,31 +33,34 @@
 @keyframes fadeLine{ from { stroke-opacity: 1 } to { stroke-opacity: 0 } }
 
 /* Overlay helpers for Mantine-wrapped anchors and devices */
-.overlay-anchor{ display:flex; flex-direction:column; align-items:center; gap:4px; pointer-events:auto }
+.overlay-anchor{ display:flex; flex-direction:column; align-items:center; gap:4px; pointer-events:auto; transform:translate(-50%,-100%); }
 .overlay-anchor .mantine-ActionIcon-root{ box-shadow:0 6px 18px rgba(11,92,255,0.12) }
-.overlay-device{ display:flex; align-items:center; justify-content:center; pointer-events:auto }
-.overlay-device .mantine-Badge-root{ transform:translate(-50%,-50%); }
+.overlay-device{ display:flex; align-items:center; justify-content:center; pointer-events:auto; transform:translate(-50%,-50%); }
 
 /* Left navigation styles */
 .layout-shell{ display:flex }
-.leftnav{ width:72px; background:linear-gradient(180deg,var(--card),#fffaf0); display:flex;flex-direction:column;align-items:center;padding:12px 6px;border-right:1px solid rgba(0,0,0,0.03);height:100vh;position:fixed;left:0;top:0;z-index:120;overflow:visible;transition:width 220ms ease }
+.leftnav{ width:72px; background:#f2e9dd; display:flex;flex-direction:column;align-items:center;padding:12px 6px;border-right:1px solid rgba(0,0,0,0.06);height:100vh;position:fixed;left:0;top:0;z-index:120;overflow:visible;transition:width 220ms ease }
 .leftnav-brand{ width:44px;height:44px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;margin-bottom:8px }
-.leftnav-item{ width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--muted);margin:6px 0;transition:all .15s ease;background:rgba(139,107,59,0.04) }
+.leftnav-item{ width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#4b4336;margin:6px 0;transition:all .15s ease;background:transparent }
 .leftnav-item svg{ width:20px; height:20px; display:block; stroke:currentColor; fill:currentColor }
 .leftnav-item svg *{ stroke:currentColor; fill:currentColor }
 .leftnav-item:hover{ background:rgba(139,107,59,0.12); color:var(--accent) }
-.leftnav-item.active{ background:var(--accent); color:#fff }
+.leftnav-item.active{ background:#e7d9c7; color:#493a26 }
 /* label next to icon when nav expands */
 .leftnav-label{ display:none; margin-left:10px; font-size:13px; color:var(--muted) }
 .leftnav:hover{ width:200px }
-.leftnav:hover .leftnav-item{ justify-content:flex-start; padding-left:14px }
+.leftnav:hover .leftnav-item{ justify-content:flex-start; padding-left:12px; width:calc(100% - 12px) }
+.leftnav:hover .leftnav-item.active{ width:calc(100% - 12px) }
+.leftnav:hover .leftnav-item:hover{ background:rgba(139,107,59,0.12) }
 .leftnav:hover .leftnav-label{ display:inline }
 
 /* animate topbar and content when nav expands */
-.topbar{ transition: left 220ms ease }
+.topbar{ transition: left 220ms ease, right 220ms ease }
 .leftnav:hover ~ .topbar{ left:200px }
-.content{ margin-left:72px; transition: margin-left 220ms ease; padding-top:56px }
+.content{ margin-left:72px; transition: margin-left 220ms ease, margin-right 220ms ease; padding-top:56px; width:100% }
 .leftnav:hover ~ .content{ margin-left:200px }
+
+/* Right panel spacing handled inline via panelOpen prop; class-based rules removed to avoid conflicts */
 
 /* control pills */
 .control-pill{border-radius:999px;padding:8px 12px;border:1px solid rgba(139,107,59,0.08);background:transparent}
