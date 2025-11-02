@@ -24,16 +24,21 @@ function toMeasurements(anchors, distances){
  */
 export function trilaterate(anchors, distances, opts = {}){
   // Simple linear least-squares 2D trilateration using the algebraic
-  // formulation. This follows the approach of choosing the first anchor
-  // as reference and solving A x = b in the least-squares sense.
+  // formulation derived by subtracting the first anchor's squared-distance
+  // equation from the others. If all anchors share the same height (z),
+  // the (z - z0)^2 term cancels out exactly, so using true 3D distances
+  // still yields a correct 2D solution for (x, y).
   // Anchors: [{ beaconId, x, y }], distances: [{ beaconId, distance }]
-  const { zeroIsAnchor = false } = opts
+  const { zeroIsAnchor = false, zeroEpsilon } = opts
   const measurements = toMeasurements(anchors, distances);
   if(!measurements || measurements.length === 0) return null
 
   // if any measurement is exactly zero, return that anchor's position
   if(zeroIsAnchor){
-    for(const m of measurements){ if(m.distance === 0) return { x: m.anchor.x, y: m.anchor.y } }
+    const eps = Number.isFinite(zeroEpsilon) ? zeroEpsilon : 0
+    for(const m of measurements){
+      if(m.distance <= eps) return { x: m.anchor.x, y: m.anchor.y }
+    }
   }
 
   // need at least 3 measurements for a stable 2D solution
@@ -59,9 +64,15 @@ export function trilaterate(anchors, distances, opts = {}){
   for(let i=1;i<measurements.length;i++){
     const ai = measurements[i]
     const xi = ai.anchor.x, yi = ai.anchor.y, di = ai.distance
+    const zi = Number.isFinite(ai.anchor.z) ? ai.anchor.z : 0
+    const z0 = Number.isFinite(ref.z) ? ref.z : 0
     const a0 = 2*(xi - ref.x)
     const a1 = 2*(yi - ref.y)
-  const bi = (xi*xi - ref.x*ref.x) + (yi*yi - ref.y*ref.y) + (d0*d0 - di*di)
+  // RHS using the sign convention already used in this codebase (which is the
+  // negative of the common textbook arrangement). Including z maintains correctness
+  // when using true 3D distances; if all anchors have the same z, the z term cancels.
+  // bi = (x_i^2 - x_0^2) + (y_i^2 - y_0^2) + (z_i^2 - z_0^2) + (d_0^2 - d_i^2)
+  const bi = ((xi*xi - ref.x*ref.x) + (yi*yi - ref.y*ref.y) + (zi*zi - z0*z0)) + (d0*d0 - di*di)
     ATA00 += a0 * a0
     ATA01 += a0 * a1
     ATA11 += a1 * a1

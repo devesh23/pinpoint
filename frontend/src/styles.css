@@ -41,7 +41,7 @@
 .layout-shell{ display:flex }
 .leftnav{ width:72px; background:#f2e9dd; display:flex;flex-direction:column;align-items:center;padding:12px 6px;border-right:1px solid rgba(0,0,0,0.06);height:100vh;position:fixed;left:0;top:0;z-index:120;overflow:visible;transition:width 220ms ease }
 .leftnav-brand{ width:44px;height:44px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;margin-bottom:8px }
-.leftnav-item{ width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#4b4336;margin:6px 0;transition:all .15s ease;background:transparent }
+.leftnav-item{ width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#4b4336;margin:6px 0;transition:all .15s ease;background:transparent; box-sizing:border-box }
 .leftnav-item svg{ width:20px; height:20px; display:block; stroke:currentColor; fill:currentColor }
 .leftnav-item svg *{ stroke:currentColor; fill:currentColor }
 .leftnav-item:hover{ background:rgba(139,107,59,0.12); color:var(--accent) }
@@ -49,8 +49,8 @@
 /* label next to icon when nav expands */
 .leftnav-label{ display:none; margin-left:10px; font-size:13px; color:var(--muted) }
 .leftnav:hover{ width:200px }
-.leftnav:hover .leftnav-item{ justify-content:flex-start; padding-left:12px; width:calc(100% - 12px) }
-.leftnav:hover .leftnav-item.active{ width:calc(100% - 12px) }
+.leftnav:hover .leftnav-item{ justify-content:flex-start; padding-left:12px; padding-right:12px; width:100% }
+.leftnav:hover .leftnav-item.active{ width:100% }
 .leftnav:hover .leftnav-item:hover{ background:rgba(139,107,59,0.12) }
 .leftnav:hover .leftnav-label{ display:inline }
 

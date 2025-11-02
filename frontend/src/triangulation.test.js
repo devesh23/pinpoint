@@ -80,4 +80,28 @@ describe('triangulation (legacy script converted)', () => {
     expect(ny).toBeGreaterThanOrEqual(0)
     expect(ny).toBeLessThanOrEqual(1)
   })
+
+  it('places result near anchor with very small distance (just above anchor)', () => {
+    // From provided snapshot; tag is placed just above anchor 020000b3 at (0,0)
+    // Anchors in meters
+    const anchors = [
+      { beaconId: '020000b3', x: 0, y: 0 },
+      { beaconId: '02000053', x: 0, y: 1.6 },
+      { beaconId: '020000e6', x: 1.6, y: 1.6 }
+    ]
+    // Distances in meters
+    const distances = [
+      { beaconId: '02000053', distance: 1.72 },
+      { beaconId: '020000e6', distance: 2.13 },
+      { beaconId: '020000b3', distance: 0.09 }
+    ]
+
+    const res = trilaterate(anchors, distances, { zeroIsAnchor: true, zeroEpsilon: 0.1 })
+    expect(res).toBeTruthy()
+    const b3 = anchors.find(a => a.beaconId === '020000b3')
+    // Snap-to-anchor with epsilon should land very close to the known anchor position
+    const tol = 0.05 // within 5 cm of the anchor
+    expect(Math.abs(res.x - b3.x)).toBeLessThan(tol)
+    expect(Math.abs(res.y - b3.y)).toBeLessThan(tol)
+  })
 })

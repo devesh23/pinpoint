@@ -63,10 +63,11 @@ fn path_waypoints(width: f64, height: f64) -> Vec<(f64, f64)> {
 
 // Generate a single uwb_update payload with random device position inside
 // the factory bounds (width x height in meters).
-fn generate_uwb_update_for_pos(x: f64, y: f64, width: f64, height: f64) -> serde_json::Value {
+fn generate_uwb_update_for_pos(x: f64, y: f64, width: f64, height: f64, anchor_z: f64, tag_z: f64) -> serde_json::Value {
     let mut beacons = vec![];
     for (id, ax, ay) in corner_anchors(width, height) {
-        let dist = ((ax - x).powi(2) + (ay - y).powi(2)).sqrt();
+        let dz = tag_z - anchor_z;
+        let dist = ((ax - x).powi(2) + (ay - y).powi(2) + dz.powi(2)).sqrt();
         beacons.push(json!({
             "major": "0200",
             "minor": id.get(2..).unwrap_or("0000"),
@@ -85,6 +86,9 @@ fn generate_uwb_update_for_pos(x: f64, y: f64, width: f64, height: f64) -> serde
             "numberOfBeacons": beacons.len(),
             "motion": "No Movement",
             "beacons": beacons,
+            // include Z metadata to aid debugging (optional for clients)
+            "anchorsZ": anchor_z,
+            "tagZ": tag_z,
             "requestTimestamp": ts
         },
         "ts": ts
@@ -102,6 +106,20 @@ fn sse_event_block(payload: &serde_json::Value) -> String {
 async fn mock_stream(query: web::Query<HashMap<String, String>>) -> Result<HttpResponse, Error> {
     let width = query.get("w").and_then(|s| s.parse::<f64>().ok()).unwrap_or(20.0);
     let height = query.get("h").and_then(|s| s.parse::<f64>().ok()).unwrap_or(10.0);
+    // Anchors share a single Z; choose randomly unless provided
+    let mut rng = rand::thread_rng();
+    let anchor_z = query.get("az").and_then(|s| s.parse::<f64>().ok()).unwrap_or_else(|| rng.gen_range(1.2..1.8));
+    // Tag Z can be provided or randomized; keep constant for the stream for stability
+    let tz_base = query.get("tz").and_then(|s| s.parse::<f64>().ok()).unwrap_or_else(|| rng.gen_range(0.8..2.2));
+    // Optional sinusoidal oscillation of tag Z to stress solver
+    let tz_amp = query.get("tzAmp").and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+    let tz_hz = query.get("tzHz").and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+    // Perturbation controls
+    let noise = query.get("noise").and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+    let outlier_rate = query.get("outlierRate").and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+    let outlier_scale = query.get("outlierScale").and_then(|s| s.parse::<f64>().ok()).unwrap_or(1.8);
+    let drop_rate = query.get("dropRate").and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+    let zero_rate = query.get("zeroRate").and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
     // Use a stable mock device ID so the frontend can draw a continuous path
     let stable_hex = String::from("a0ba3e29");
     let stable_dec: u64 = 2696560169;
@@ -109,6 +127,7 @@ async fn mock_stream(query: web::Query<HashMap<String, String>>) -> Result<HttpR
     let step = 0.05_f64; // fraction per tick along each segment
     let mut seg_idx: usize = 0;
     let mut t: f64 = 0.0;
+    let mut tick: u64 = 0;
     // create a stream that yields Bytes of SSE events periodically
     let s = stream! {
         loop {
@@ -120,20 +139,35 @@ async fn mock_stream(query: web::Query<HashMap<String, String>>) -> Result<HttpR
             t += step;
             if t >= 1.0 { t = 0.0; seg_idx = (seg_idx + 1) % waypoints.len(); }
 
-            let mut p2 = generate_uwb_update_for_pos(x, y, width, height);
-            // Convert distances to centimeters to match the live stream format (integers)
-            if let Some(beacons) = p2.get_mut("payload").and_then(|pl| pl.get_mut("beacons")) {
-                if let Some(arr) = beacons.as_array_mut() {
-                    for b in arr.iter_mut() {
+            let tag_z = if tz_amp > 0.0 && tz_hz > 0.0 { tz_base + tz_amp * (std::f64::consts::TAU * tz_hz * (tick as f64) * 0.6).sin() } else { tz_base };
+            let mut p2 = generate_uwb_update_for_pos(x, y, width, height, anchor_z, tag_z);
+            // Apply perturbations and convert to centimeters
+            if let Some(payload) = p2.get_mut("payload") {
+                if let Some(arr) = payload.get_mut("beacons").and_then(|b| b.as_array_mut()) {
+                    let mut new_arr: Vec<serde_json::Value> = Vec::with_capacity(arr.len());
+                    for mut b in arr.drain(..) {
+                        // dropout
+                        if drop_rate > 0.0 && rng.gen::<f64>() < drop_rate { continue; }
                         if let Some(d) = b.get("distance").and_then(|v| v.as_f64()) {
-                            let cm = (d * 100.0).round();
+                            let mut d_m = d;
+                            // occasional near-zero
+                            if zero_rate > 0.0 && rng.gen::<f64>() < zero_rate { d_m = rng.gen_range(0.0..0.10); }
+                            // uniform noise
+                            if noise > 0.0 { d_m += rng.gen_range(-noise..noise); }
+                            // outlier scaling
+                            if outlier_rate > 0.0 && rng.gen::<f64>() < outlier_rate { d_m *= outlier_scale; }
+                            if d_m < 0.0 { d_m = 0.0; }
+                            let cm = (d_m * 100.0).round();
                             b["distance"] = json!(cm as i64);
+                            new_arr.push(b);
+                        } else {
+                            new_arr.push(b);
                         }
                     }
+                    *arr = new_arr;
+                    payload["numberOfBeacons"] = json!(arr.len());
                 }
-            }
-            // Ensure device ID is constant (already set in generator but keep for clarity)
-            if let Some(payload) = p2.get_mut("payload") {
+                // Ensure device ID is constant
                 payload["deviceIdHex"] = json!(stable_hex);
                 payload["deviceIdDecimal"] = json!(stable_dec);
             }
@@ -141,6 +175,7 @@ async fn mock_stream(query: web::Query<HashMap<String, String>>) -> Result<HttpR
             yield Ok::<Bytes, Error>(Bytes::from(block));
             // faster updates for smoother path
             actix_web::rt::time::sleep(std::time::Duration::from_millis(600)).await;
+            tick = tick.wrapping_add(1);
         }
     };
 
@@ -159,17 +194,42 @@ async fn mock_once(query: web::Query<HashMap<String, String>>) -> Result<HttpRes
     let width = query.get("w").and_then(|s| s.parse::<f64>().ok()).unwrap_or(20.0);
     let height = query.get("h").and_then(|s| s.parse::<f64>().ok()).unwrap_or(10.0);
     let cx = width/2.0; let cy = height/2.0;
-    let p = generate_uwb_update_for_pos(cx, cy, width, height);
+    let mut rng = rand::thread_rng();
+    let anchor_z = query.get("az").and_then(|s| s.parse::<f64>().ok()).unwrap_or_else(|| rng.gen_range(1.2..1.8));
+    let tz_base = query.get("tz").and_then(|s| s.parse::<f64>().ok()).unwrap_or_else(|| rng.gen_range(0.8..2.2));
+    let tz_amp = query.get("tzAmp").and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+    let tz_hz = query.get("tzHz").and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+    let noise = query.get("noise").and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+    let outlier_rate = query.get("outlierRate").and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+    let outlier_scale = query.get("outlierScale").and_then(|s| s.parse::<f64>().ok()).unwrap_or(1.8);
+    let drop_rate = query.get("dropRate").and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+    let zero_rate = query.get("zeroRate").and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+    let now_ms = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as f64;
+    let t_sec = now_ms / 1000.0;
+    let tag_z = if tz_amp > 0.0 && tz_hz > 0.0 { tz_base + tz_amp * (std::f64::consts::TAU * tz_hz * t_sec).sin() } else { tz_base };
+    let mut p = generate_uwb_update_for_pos(cx, cy, width, height, anchor_z, tag_z);
     // Convert distances to centimeters to match the live stream format
     let mut p2 = p.clone();
-    if let Some(beacons) = p2.get_mut("payload").and_then(|pl| pl.get_mut("beacons")) {
-        if let Some(arr) = beacons.as_array_mut() {
-            for b in arr.iter_mut() {
+    if let Some(payload) = p2.get_mut("payload") {
+        if let Some(arr) = payload.get_mut("beacons").and_then(|b| b.as_array_mut()) {
+            let mut new_arr: Vec<serde_json::Value> = Vec::with_capacity(arr.len());
+            for mut b in arr.drain(..) {
+                if drop_rate > 0.0 && rng.gen::<f64>() < drop_rate { continue; }
                 if let Some(d) = b.get("distance").and_then(|v| v.as_f64()) {
-                    let cm = (d * 100.0).round();
+                    let mut d_m = d;
+                    if zero_rate > 0.0 && rng.gen::<f64>() < zero_rate { d_m = rng.gen_range(0.0..0.10); }
+                    if noise > 0.0 { d_m += rng.gen_range(-noise..noise); }
+                    if outlier_rate > 0.0 && rng.gen::<f64>() < outlier_rate { d_m *= outlier_scale; }
+                    if d_m < 0.0 { d_m = 0.0; }
+                    let cm = (d_m * 100.0).round();
                     b["distance"] = json!(cm as i64);
+                    new_arr.push(b);
+                } else {
+                    new_arr.push(b);
                 }
             }
+            *arr = new_arr;
+            payload["numberOfBeacons"] = json!(arr.len());
         }
     }
 
@@ -234,7 +294,8 @@ async fn positions(_q: web::Query<QueryApiKey>) -> impl Responder {
     // Factory bounds — default values; provide center snapshot
     let width = 20.0_f64;
     let height = 10.0_f64;
-    let mut payload = generate_uwb_update_for_pos(width/2.0, height/2.0, width, height);
+    // default Zs: anchors at 1.5m, tag at 1.5m, default geometry
+    let mut payload = generate_uwb_update_for_pos(width/2.0, height/2.0, width, height, 1.5, 1.5);
     // Keep positions endpoint consistent with stable ID for easier demos
     if let Some(p) = payload.get_mut("payload") {
         p["deviceIdHex"] = json!("a0ba3e29");

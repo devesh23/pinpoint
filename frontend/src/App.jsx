@@ -44,6 +44,9 @@ function App(){
   const [pollIntervalSec, setPollIntervalSec] = useState(30)
   const [employees, setEmployees] = useState([])
   const [image, setImage] = useState(null)
+  // When true, we auto-generate an SVG plan from factory dimensions and keep it in sync on change.
+  // This is turned off if the user uploads a custom image.
+  const [autoPlan, setAutoPlan] = useState(true)
   const [imageLoaded, setImageLoaded] = useState(false)
   const imgRef = useRef()
   const planRef = useRef()
@@ -122,17 +125,16 @@ function App(){
     return { type: 'svg', content: svg, width: W, height: H }
   }
 
-  // Create a default SVG plan on startup (and when dims change) if no image provided
+  // Create/sync default SVG plan on startup and when dims change (only if autoPlan is enabled)
   useEffect(()=>{
-    // If an image is already loaded (uploaded or previously generated), skip
-    if(image && (typeof image === 'string' || image.type)) return
+    if(!autoPlan) return
     const imgObj = generatePlanSvg(factoryWidthMeters, factoryHeightMeters)
     setImageLoaded(false)
     setImage(imgObj)
     // Initialize SVG viewbox to full image
     setTimeout(()=>{ setSvgViewBox({ x:0, y:0, w: imgObj.width, h: imgObj.height }) }, 0)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [factoryWidthMeters, factoryHeightMeters])
+  }, [factoryWidthMeters, factoryHeightMeters, autoPlan])
 
   // pan/zoom listeners and viewBox application are handled by useSvgPanZoom
 
@@ -158,6 +160,15 @@ function App(){
     // paths layer (under anchors) with fading segments
     const drawW = (image.width || (svgEl.viewBox?.baseVal?.width) || svgEl.clientWidth)
     const drawH = (image.height || (svgEl.viewBox?.baseVal?.height) || svgEl.clientHeight)
+    // Compute user-units per CSS pixel to keep markers a consistent on-screen size
+    const elRect = svgEl.getBoundingClientRect()
+    const elW = Math.max(1, elRect.width || svgEl.clientWidth || drawW)
+    const elH = Math.max(1, elRect.height || svgEl.clientHeight || drawH)
+    const vbW = (svgViewBox?.w) || (svgEl.viewBox?.baseVal?.width) || drawW
+    const vbH = (svgViewBox?.h) || (svgEl.viewBox?.baseVal?.height) || drawH
+    // Assume uniform scaling (meet); use X scale for conversion
+    const unitsPerPx = vbW / elW
+    const pxToUnits = (px)=> (px * unitsPerPx)
     for(const deviceId of Object.keys(paths)){
       const arr = paths[deviceId] || []
       if(arr.length < 2) continue
@@ -171,7 +182,8 @@ function App(){
         seg.setAttribute('x1', x1.toFixed(1)); seg.setAttribute('y1', y1.toFixed(1))
         seg.setAttribute('x2', x2.toFixed(1)); seg.setAttribute('y2', y2.toFixed(1))
         seg.setAttribute('stroke', '#ef4444')
-        seg.setAttribute('stroke-width', '3')
+        seg.setAttribute('stroke-width', String(pxToUnits(3)))
+        seg.setAttribute('vector-effect', 'non-scaling-stroke')
         const t = (i - start) / maxSeg
         const op = 0.15 + 0.75 * t // fade older segments
         seg.setAttribute('stroke-opacity', op.toFixed(2))
@@ -180,7 +192,7 @@ function App(){
       }
     }
 
-    // anchors
+    // anchors (constant on-screen size)
     anchors.forEach((a, idx) => {
       const ax = (a.x) * (image.width || svgEl.viewBox.baseVal.width || svgEl.clientWidth)
       const ay = (a.y) * (image.height || svgEl.viewBox.baseVal.height || svgEl.clientHeight)
@@ -191,18 +203,19 @@ function App(){
       ag.style.pointerEvents = 'auto'
 
       const circle = document.createElementNS(NS, 'circle')
-      circle.setAttribute('r','12')
+      circle.setAttribute('r', String(pxToUnits(12)))
       circle.setAttribute('fill','#1d4ed8')
       circle.setAttribute('stroke','#ffffff')
-      circle.setAttribute('stroke-width','2')
+      circle.setAttribute('stroke-width', String(pxToUnits(2)))
+      circle.setAttribute('vector-effect', 'non-scaling-stroke')
       ag.appendChild(circle)
 
       const txt = document.createElementNS(NS, 'text')
       txt.setAttribute('x','0')
-      txt.setAttribute('y','-16')
+      txt.setAttribute('y', String(-pxToUnits(16)))
       txt.setAttribute('text-anchor','middle')
       txt.setAttribute('fill','#0b2540')
-      txt.setAttribute('font-size','10')
+      txt.setAttribute('font-size', String(pxToUnits(10)))
       txt.textContent = anchorNames[a.beaconId] || a.beaconId
       ag.appendChild(txt)
 
@@ -214,7 +227,7 @@ function App(){
       g.appendChild(ag)
     })
 
-    // devices (badges)
+    // devices (render as red circles with label below, constant on-screen size)
     employees.forEach(emp => {
       const ex = (emp.x) * (image.width || svgEl.viewBox.baseVal.width || svgEl.clientWidth)
       const ey = (emp.y) * (image.height || svgEl.viewBox.baseVal.height || svgEl.clientHeight)
@@ -222,21 +235,20 @@ function App(){
       dg.setAttribute('transform', `translate(${ex},${ey})`)
       dg.style.pointerEvents = 'auto'
 
-      const rect = document.createElementNS(NS, 'rect')
-      rect.setAttribute('x', '-28')
-      rect.setAttribute('y', '-12')
-      rect.setAttribute('width', '56')
-      rect.setAttribute('height', '24')
-      rect.setAttribute('rx', '12')
-      rect.setAttribute('fill', '#ef4444')
-      dg.appendChild(rect)
+      const circle = document.createElementNS(NS, 'circle')
+      circle.setAttribute('r', String(pxToUnits(12)))
+      circle.setAttribute('fill','#ef4444')
+      circle.setAttribute('stroke','#ffffff')
+      circle.setAttribute('stroke-width', String(pxToUnits(2)))
+      circle.setAttribute('vector-effect', 'non-scaling-stroke')
+      dg.appendChild(circle)
 
       const t = document.createElementNS(NS, 'text')
       t.setAttribute('x','0')
-      t.setAttribute('y','6')
+      t.setAttribute('y', String(pxToUnits(20)))
       t.setAttribute('text-anchor','middle')
-      t.setAttribute('fill','#fff')
-      t.setAttribute('font-size','10')
+      t.setAttribute('fill','#0b2540')
+      t.setAttribute('font-size', String(pxToUnits(10)))
       t.textContent = deviceNames[emp.id]||emp.label||emp.id
       dg.appendChild(t)
 
@@ -328,7 +340,7 @@ function App(){
     const host = window.location.hostname
     const url = useLive
       ? `http://${host}:${backendPort}/proxy/uwbStream`
-      : `http://${host}:${backendPort}/mock/stream?w=${encodeURIComponent(factoryWidthMeters)}&h=${encodeURIComponent(factoryHeightMeters)}`
+      : `http://${host}:${backendPort}/mock/stream?w=${encodeURIComponent(factoryWidthMeters)}&h=${encodeURIComponent(factoryHeightMeters)}&az=1.5&tz=1.5&tzAmp=0.2&tzHz=0.1&noise=0.05&outlierRate=0.05&outlierScale=1.8&dropRate=0.05&zeroRate=0.02`
     setPollUrl(url)
     pushLog(`pollUrl set to ${url} (useLive=${useLive})`)
   }, [backendPort, useLive, factoryWidthMeters, factoryHeightMeters])
@@ -527,12 +539,19 @@ function App(){
   const rawDistances = (payload && Array.isArray(payload.beacons) ? payload.beacons : []).map(b => ({ beaconId: b.beaconId, distance: b.distance }))
   // Both mock and live streams provide distances in centimeters; convert to meters
   const distances = rawDistances.map(d => ({ ...d, distance: d.distance / 100 }))
+  // Restrict to distances that correspond to known anchors and are finite
+  const usable = distances.filter(d => anchorsInMeters.some(a => a.beaconId === d.beaconId) && Number.isFinite(d.distance) && d.distance >= 0)
+  // Ignore updates when fewer than 3 beacons are present to avoid skewed results
+  if(usable.length < 3){
+    pushLog(`ignoring update: only ${usable.length} beacon(s) usable`)
+    return
+  }
   // If any measurement is exactly zero, prefer treating that as an anchor hit
-  const hasZero = distances.some(d => d.distance === 0)
-  const pos = trilaterate(anchorsInMeters, distances, { zeroIsAnchor: hasZero })
+  const hasZero = usable.some(d => d.distance === 0)
+  const pos = trilaterate(anchorsInMeters, usable, { zeroIsAnchor: hasZero })
     if(!pos){
       pushLog(`triangulation failed: anchors=${anchorsInMeters.length} beacons=${distances.length}`)
-      setDebugInfo({ when: Date.now(), reason: 'triangulation-failed', anchorsInMeters, distancesCm: rawDistances, distancesM: distances, payload })
+      setDebugInfo({ when: Date.now(), reason: 'triangulation-failed', anchorsInMeters, distancesCm: rawDistances, distancesM: usable, payload })
       return
     }
   let norm = worldToNorm(pos.x, pos.y)
@@ -543,8 +562,10 @@ function App(){
       return
     }
     // record raw result for debug overlay (pre-smoothing)
+  // clamp to visible bounds to avoid off-canvas rendering when dimensions are tiny
+  const clamped = { x: Math.min(1, Math.max(0, norm.x)), y: Math.min(1, Math.max(0, norm.y)) }
   const nowTs = Date.now()
-  setDebugInfo({ when: nowTs, posMeters: pos, norm, anchorsInMeters, distancesCm: rawDistances, distancesM: distances, payload, smoothingMethod, invertY })
+  setDebugInfo({ when: nowTs, posMeters: pos, norm, clamped, anchorsInMeters, distancesCm: rawDistances, distancesM: distances, payload, smoothingMethod, invertY })
   setFrameCount(c=>c+1)
   setLastPacketAt(nowTs)
   // update FPS as frames per second over last 10s window
@@ -560,7 +581,7 @@ function App(){
       // use per-device Kalman filters
       if(!kalmanRef.current[id]) kalmanRef.current[id] = new Kalman2D(0.0005, 0.002)
       const kf = kalmanRef.current[id]
-      const filtered = kf.update(norm)
+  const filtered = kf.update(clamped)
   setSmoothed(prev => ({ ...prev, [id]: filtered }))
   setEmployees([{ id, label: deviceNames[id]||id, x: filtered.x, y: filtered.y, t: Date.now() }])
   pushLog(`pos[kalman]: ${filtered.x.toFixed(3)}, ${filtered.y.toFixed(3)}`)
@@ -570,9 +591,9 @@ function App(){
       setSmoothed(prev => {
         const prevPos = prev[id]
         const newPos = prevPos ? {
-          x: smoothingAlpha*norm.x + (1-smoothingAlpha)*prevPos.x,
-          y: smoothingAlpha*norm.y + (1-smoothingAlpha)*prevPos.y
-        } : norm
+          x: smoothingAlpha*clamped.x + (1-smoothingAlpha)*prevPos.x,
+          y: smoothingAlpha*clamped.y + (1-smoothingAlpha)*prevPos.y
+        } : clamped
     const next = { ...prev, [id]: newPos }
   // update rendered employees list (use display name if available)
   setEmployees([{ id, label: deviceNames[id]||id, x: newPos.x, y: newPos.y, t: Date.now() }])
@@ -646,7 +667,7 @@ function App(){
                 <Mantine.Text weight={600}>Factory Plan</Mantine.Text>
               </Mantine.Group>
               <Mantine.Group style={{ marginLeft:'auto' }}>
-                <Mantine.FileInput size="sm" variant="filled" className="control-pill" placeholder="Upload plan image" accept="image/*" onChange={(f)=>{ if(!f) return; setImageLoaded(false); setImage(URL.createObjectURL(f)); }} />
+                <Mantine.FileInput size="sm" variant="filled" className="control-pill" placeholder="Upload plan image" accept="image/*" onChange={(f)=>{ if(!f) return; setAutoPlan(false); setImageLoaded(false); setImage(URL.createObjectURL(f)); }} />
                 {/* Canvas modifiers moved into on-canvas overlay; placement is controlled from Right Panel */}
               </Mantine.Group>
             </Mantine.Group>
