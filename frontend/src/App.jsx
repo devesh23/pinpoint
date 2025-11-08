@@ -167,8 +167,22 @@ function App(){
     const vbW = (svgViewBox?.w) || (svgEl.viewBox?.baseVal?.width) || drawW
     const vbH = (svgViewBox?.h) || (svgEl.viewBox?.baseVal?.height) || drawH
     // Assume uniform scaling (meet); use X scale for conversion
-    const unitsPerPx = vbW / elW
-    const pxToUnits = (px)=> (px * unitsPerPx)
+  const unitsPerPx = vbW / elW
+  const pxToUnits = (px)=> (px * unitsPerPx)
+  // Marker sizing rules (bump up sizes for very small plans)
+  const isTinyPlan = Number(factoryWidthMeters) <= 2 && Number(factoryHeightMeters) <= 2
+  const markerRadiusPx = isTinyPlan ? 20 : 12
+  const markerStrokePx = isTinyPlan ? 4 : 2
+  const markerFontPx = Math.max(8, isTinyPlan ? 14 : 10) // never below 8px
+  const anchorLabelOffsetAbovePx = markerRadiusPx + (isTinyPlan ? 12 : 6)
+  const deviceLabelOffsetBelowPx = markerRadiusPx + (isTinyPlan ? 12 : 8)
+    // Slightly increase path thickness for very small factory plans (e.g., 1.6m x 1.6m)
+    const targetStrokePx = (()=>{
+      const w = Number(factoryWidthMeters)
+      const h = Number(factoryHeightMeters)
+      if(Number.isFinite(w) && Number.isFinite(h) && w <= 2 && h <= 2) return 5
+      return 3
+    })()
     for(const deviceId of Object.keys(paths)){
       const arr = paths[deviceId] || []
       if(arr.length < 2) continue
@@ -182,10 +196,12 @@ function App(){
         seg.setAttribute('x1', x1.toFixed(1)); seg.setAttribute('y1', y1.toFixed(1))
         seg.setAttribute('x2', x2.toFixed(1)); seg.setAttribute('y2', y2.toFixed(1))
         seg.setAttribute('stroke', '#ef4444')
-        seg.setAttribute('stroke-width', String(pxToUnits(3)))
+        seg.setAttribute('stroke-width', String(pxToUnits(targetStrokePx)))
         seg.setAttribute('vector-effect', 'non-scaling-stroke')
         const t = (i - start) / maxSeg
-        const op = 0.15 + 0.75 * t // fade older segments
+        const base = isTinyPlan ? 0.4 : 0.15
+        const span = isTinyPlan ? 0.6 : 0.75
+        const op = base + span * t // fade older segments, but keep more visible on tiny plans
         seg.setAttribute('stroke-opacity', op.toFixed(2))
         seg.setAttribute('stroke-linecap', 'round')
         g.appendChild(seg)
@@ -202,20 +218,20 @@ function App(){
       // allow pointer events on anchors
       ag.style.pointerEvents = 'auto'
 
-      const circle = document.createElementNS(NS, 'circle')
-      circle.setAttribute('r', String(pxToUnits(12)))
+  const circle = document.createElementNS(NS, 'circle')
+  circle.setAttribute('r', String(pxToUnits(markerRadiusPx)))
       circle.setAttribute('fill','#1d4ed8')
-      circle.setAttribute('stroke','#ffffff')
-      circle.setAttribute('stroke-width', String(pxToUnits(2)))
+  circle.setAttribute('stroke','#ffffff')
+  circle.setAttribute('stroke-width', String(pxToUnits(markerStrokePx)))
       circle.setAttribute('vector-effect', 'non-scaling-stroke')
       ag.appendChild(circle)
 
       const txt = document.createElementNS(NS, 'text')
       txt.setAttribute('x','0')
-      txt.setAttribute('y', String(-pxToUnits(16)))
+  txt.setAttribute('y', String(-pxToUnits(anchorLabelOffsetAbovePx)))
       txt.setAttribute('text-anchor','middle')
       txt.setAttribute('fill','#0b2540')
-      txt.setAttribute('font-size', String(pxToUnits(10)))
+  txt.setAttribute('font-size', String(pxToUnits(markerFontPx)))
       txt.textContent = anchorNames[a.beaconId] || a.beaconId
       ag.appendChild(txt)
 
@@ -235,20 +251,20 @@ function App(){
       dg.setAttribute('transform', `translate(${ex},${ey})`)
       dg.style.pointerEvents = 'auto'
 
-      const circle = document.createElementNS(NS, 'circle')
-      circle.setAttribute('r', String(pxToUnits(12)))
+  const circle = document.createElementNS(NS, 'circle')
+  circle.setAttribute('r', String(pxToUnits(markerRadiusPx)))
       circle.setAttribute('fill','#ef4444')
-      circle.setAttribute('stroke','#ffffff')
-      circle.setAttribute('stroke-width', String(pxToUnits(2)))
+  circle.setAttribute('stroke','#ffffff')
+  circle.setAttribute('stroke-width', String(pxToUnits(markerStrokePx)))
       circle.setAttribute('vector-effect', 'non-scaling-stroke')
       dg.appendChild(circle)
 
       const t = document.createElementNS(NS, 'text')
       t.setAttribute('x','0')
-      t.setAttribute('y', String(pxToUnits(20)))
+  t.setAttribute('y', String(pxToUnits(deviceLabelOffsetBelowPx)))
       t.setAttribute('text-anchor','middle')
       t.setAttribute('fill','#0b2540')
-      t.setAttribute('font-size', String(pxToUnits(10)))
+  t.setAttribute('font-size', String(pxToUnits(markerFontPx)))
       t.textContent = deviceNames[emp.id]||emp.label||emp.id
       dg.appendChild(t)
 
@@ -258,7 +274,7 @@ function App(){
     svgEl.appendChild(g)
 
     return ()=>{ const ex = svgEl.querySelector('#react-overlay-group'); if(ex) ex.remove() }
-  }, [image, anchors, employees, paths, svgViewBox, anchorNames, deviceNames])
+  }, [image, anchors, employees, paths, svgViewBox, anchorNames, deviceNames, factoryWidthMeters, factoryHeightMeters])
 
   // clientToNormalized and normToPercent provided by useSvgPanZoom
 
@@ -709,6 +725,7 @@ function App(){
                 <>
                   {/* SVG path layer */}
                   <svg className="pathLayer" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                    {(() => { /* render recent segments with pixel-consistent stroke for small plans */ return null })()}
                     {Object.keys(paths).map(deviceId => {
                       const arr = paths[deviceId] || []
                       const pts = arr.map(p=>{
@@ -719,6 +736,7 @@ function App(){
                       }).join(' ')
                       const lastIdx = arr.length - 1
                       const hasSegment = arr.length >= 2
+                      const rasterStrokePx = (Number(factoryWidthMeters) <= 2 && Number(factoryHeightMeters) <= 2) ? 5 : 3
                       let seg = null
                       if(hasSegment){
                         const a = arr[lastIdx-1]
@@ -727,12 +745,12 @@ function App(){
                         const pb = normToPercent(b.x, b.y)
                         const x1 = ((pa.left/100.0) * 1000.0).toFixed(1), y1 = ((pa.top/100.0) * 1000.0).toFixed(1)
                         const x2 = ((pb.left/100.0) * 1000.0).toFixed(1), y2 = ((pb.top/100.0) * 1000.0).toFixed(1)
-                        seg = <line key={deviceId+"-seg-"+b.x+"-"+b.y} className="drawSegment" x1={x1} y1={y1} x2={x2} y2={y2} fill="none" stroke="#ef4444" strokeWidth="3" strokeOpacity="0.9" strokeLinecap="round" />
+                        seg = <line key={deviceId+"-seg-"+b.x+"-"+b.y} className="drawSegment" x1={x1} y1={y1} x2={x2} y2={y2} fill="none" stroke="#ef4444" strokeWidth={rasterStrokePx} strokeOpacity="0.9" strokeLinecap="round" />
                       }
                       if(!pts) return null
                       return (
                         <g key={deviceId}>
-                          <polyline points={pts} fill="none" stroke="#ef4444" strokeWidth="3" strokeOpacity="0.85" />
+                          <polyline points={pts} fill="none" stroke="#ef4444" strokeWidth={ (Number(factoryWidthMeters) <= 2 && Number(factoryHeightMeters) <= 2) ? 5 : 3 } strokeOpacity={ (Number(factoryWidthMeters) <= 2 && Number(factoryHeightMeters) <= 2) ? 1.0 : 0.85 } />
                           {seg}
                         </g>
                       )

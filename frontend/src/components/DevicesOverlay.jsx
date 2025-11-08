@@ -22,10 +22,10 @@ export default function DevicesOverlay({ employees, deviceNames, normToPercent, 
             <Mantine.Popover width={220} position="right" withArrow>
               <Mantine.Popover.Target>
                 <div style={{ display:'flex', flexDirection:'column', alignItems:'center', cursor:'pointer' }}>
-                  <svg width="26" height="26" viewBox="0 0 26 26" style={{ display:'block' }}>
-                    <circle cx="13" cy="13" r="12" fill="#ef4444" stroke="#ffffff" strokeWidth="2" />
+                  <svg width="36" height="36" viewBox="0 0 36 36" style={{ display:'block' }}>
+                    <circle cx="18" cy="18" r="16" fill="#ef4444" stroke="#ffffff" strokeWidth="3" />
                   </svg>
-                  <div style={{ marginTop:2, fontSize:10, color:'#0b2540', lineHeight:1 }}>{deviceNames[emp.id]||emp.label||emp.id}</div>
+                  <div style={{ marginTop:4, fontSize:14, color:'#0b2540', lineHeight:1 }}>{deviceNames[emp.id]||emp.label||emp.id}</div>
                 </div>
               </Mantine.Popover.Target>
               <Mantine.Popover.Dropdown>
