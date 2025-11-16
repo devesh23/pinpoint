@@ -22,6 +22,15 @@ function toMeasurements(anchors, distances){
  * Solve for 2D position given anchors and distance measurements.
  * Returns { x, y } in meters or null when the system is degenerate.
  */
+/**
+ * Perform algebraic 2D trilateration from anchor positions & measured distances.
+ * Falls back gracefully:
+ *  - 0 measurements -> null
+ *  - 1 measurement  -> anchor coordinates (degenerate circle)
+ *  - 2 measurements -> weighted midpoint along segment joining the two anchors
+ *  - >=3 measurements -> solve linearized system (shared-Z term cancels automatically)
+ * Handles explicit zero distance (treated as anchor hit) when `opts.zeroIsAnchor` set.
+ */
 export function trilaterate(anchors, distances, opts = {}){
   // Simple linear least-squares 2D trilateration using the algebraic
   // formulation derived by subtracting the first anchor's squared-distance

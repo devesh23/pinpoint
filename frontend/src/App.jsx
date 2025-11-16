@@ -1,3 +1,27 @@
+/*
+ * =============================
+ * Pinpoint Frontend Root (App)
+ * =============================
+ * High-Level Overview:
+ * - Establishes streaming connection (SSE) to backend (`/proxy/uwbStream`) for live UWB updates.
+ * - Maintains anchor definitions (normalized coordinates) and converts to world meters.
+ * - Performs trilateration on incoming distance payloads -> normalized 2D positions.
+ * - Smooths positions (EMA or per-device Kalman) and appends to path history for rendering.
+ * - Renders factory plan either as generated inline SVG (autoPlan) or user-uploaded image.
+ * - Provides calibration workflow (3-point affine) enabling mapping world <-> normalized coords.
+ * - Exposes admin & debug panels (anchor editing, logs, smoothing mode, mini-map toggle).
+ *
+ * Data Flow (simplified):
+ *   SSE frame (uwb_update) -> handleUwbUpdate -> distances filtered & converted -> trilaterate ->
+ *   smoothing -> employees state -> overlay rendering (SVG DOM injection or raster overlay).
+ *
+ * Performance Considerations:
+ * - Path rendering: recent segments only, fading older ones to limit DOM nodes.
+ * - Pixel-consistent marker sizing achieved by translating CSS pixels -> viewBox units.
+ * - Broadcast frequency tuned by backend (~600ms mock) — FPS measured over 10s sliding window.
+ *
+ * See `ARCHITECTURE.md` for full diagrammatic context.
+ */
 import React, { useState, useRef, useEffect } from 'react'
 import axios from 'axios'
 import { trilaterate } from './triangulation'
@@ -115,6 +139,11 @@ function App(){
 
   // Generate a simple SVG plan based on factory dimensions (meters).
   // Returns an object { type: 'svg', content, width, height } where content is an SVG string.
+  /**
+   * Programmatically construct a simple SVG plan sized proportionally to factory meters.
+   * Includes faint grid lines to assist anchor placement and a caption with dimensions.
+   * Returned object shape: { type:'svg', content:string, width:number, height:number }
+   */
   function generatePlanSvg(widthM, heightM){
     const W = Math.max(200, Math.round(widthM * 100))
     const H = Math.max(200, Math.round(heightM * 100))
@@ -126,6 +155,7 @@ function App(){
   }
 
   // Create/sync default SVG plan on startup and when dims change (only if autoPlan is enabled)
+  // Auto-regenerate plan SVG whenever dimensions change and custom image not in use.
   useEffect(()=>{
     if(!autoPlan) return
     const imgObj = generatePlanSvg(factoryWidthMeters, factoryHeightMeters)
@@ -140,6 +170,8 @@ function App(){
 
   // Render anchors/devices/paths inside the inline SVG element (when plan is an inline svg).
   // We draw directly into the SVG DOM so overlays inherit viewBox transforms.
+  // Inline SVG overlay effect: inject transient <g id='react-overlay-group'> containing markers & paths.
+  // This avoids rerendering the full SVG and preserves crisp scaling under zoom/pan.
   useEffect(()=>{
     if(!image || image.type !== 'svg') return
     const wrapper = imgRef.current
@@ -300,6 +332,7 @@ function App(){
     if(calibration) localStorage.setItem('calibration', JSON.stringify(calibration)); else localStorage.removeItem('calibration')
   }, [anchors, factoryWidthMeters, factoryHeightMeters, anchorNames, deviceNames, invertY])
   // Apply world->normalized via calibration when available
+  /** Convert world meters -> normalized coords using calibration affine if present. */
   function worldToNorm(xm, ym){
     if(calibration && calibration.w2n){
       const [a,b,c,d,e,f] = calibration.w2n
@@ -311,6 +344,7 @@ function App(){
   }
 
   // Apply normalized->world via calibration when available
+  /** Convert normalized coords -> world meters using inverse affine if calibration present. */
   function normToWorld(nx, ny){
     if(calibration && calibration.n2w){
       const [a,b,c,d,e,f] = calibration.n2w
@@ -325,6 +359,7 @@ function App(){
   // Load runtime config once at mount. Only after resolving config do we set
   // pollUrl; this prevents the app from starting a connection to the wrong
   // (localhost) URL and then immediately reconnecting.
+  // Load runtime config file once (backend port discovery) then derive streaming URL.
   useEffect(()=>{
     let cancelled = false
     ;(async function(){
@@ -351,6 +386,7 @@ function App(){
   }, [])
 
   // When backendPort or useLive changes, derive the pollUrl automatically.
+  // Derive pollUrl when backend port or mode changes. Embeds mock perturbation parameters when not live.
   useEffect(()=>{
     if(!backendPort) return
     const host = window.location.hostname
@@ -362,6 +398,7 @@ function App(){
   }, [backendPort, useLive, factoryWidthMeters, factoryHeightMeters])
 
   // clear per-device Kalman filters when anchors change (recalibration)
+  // Reset per-device Kalman filter instances whenever anchors change (geometry shift invalidates previous filter state).
   useEffect(()=>{
     kalmanRef.current = {}
     pushLog('Kalman filters reset due to anchor change')
@@ -370,6 +407,8 @@ function App(){
   // remove polling; both mock and live use streaming endpoints now
 
   // Unified streaming effect: connect to whichever `pollUrl` is active
+  // Streaming connection management: opens SSE to `pollUrl` and parses incremental blocks.
+  // Robust to multi-line JSON and ignores non-JSON frames (heartbeats/comments).
   useEffect(()=>{
     let stopped = false
     async function startStream(){
@@ -545,6 +584,11 @@ function App(){
    * the smoothed position for the device. The result is converted to normalized
    * coordinates relative to the configured factory dimensions.
    * @param {{deviceIdHex: string, beacons: Array}} payload
+   */
+  /**
+   * Process decrypted UWB payload, apply trilateration and smoothing, then update device state.
+   * Distances are provided in centimeters; converted to meters for solver.
+   * Ignores frames with <3 usable beacons to prevent unstable solutions.
    */
   function handleUwbUpdate(payload){
     // payload.beacons -> [{beaconId, distance}]

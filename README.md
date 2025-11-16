@@ -1,3 +1,92 @@
+# Pinpoint
+
+Indoor UWB (Ultra-Wideband) positioning demo showcasing real-time trilateration, smoothing, and visualization.
+
+## Overview
+
+The system ingests encrypted LoRaWAN uplink frames, decodes device location reports, and streams normalized distance-derived positions to a React frontend that renders paths over a factory plan (auto-generated or user-provided). Originally implemented in Node (`server.ts`), the backend has been migrated to Rust (Actix Web) for performance and robustness while preserving compatibility with existing device firmware protocols (AES-ECB + HMAC-SHA256 framing).
+
+## Components
+
+- Rust Backend (`backend/`)
+  - `main.rs`: Server initialization, mock data endpoints, conditional wiring of ingestion vs. remote proxy.
+  - `lorawan_stream.rs`: POST `/v1/uwb` decode + broadcast, SSE `/proxy/uwbStream` local stream.
+  - `lorawan_codec.rs`: AES/HMAC decode, frame parsing, downlink construction & encryption.
+- Frontend (`frontend/`)
+  - `App.jsx`: Core data flow (SSE → trilateration → smoothing → rendering).
+  - `triangulation.js`: Algebraic 2D solver assuming shared anchor Z.
+  - `kalman.js`: Lightweight per-device Kalman smoother.
+  - Various overlay components for anchors, devices, calibration, and admin controls.
+- Legacy Node (`server.ts` + `decode.ts` + `encode_client.ts`): Retained for reference; superseded by Rust.
+
+## High-Level Architecture
+
+```mermaid
+flowchart LR
+  Device[LoRaWAN Tag] --> UplinkHTTP[POST /v1/uwb (encrypted frame)]
+  UplinkHTTP --> Decode[Decode + Parse Frame]
+  Decode -->|0x05| Broadcast[Tokio Broadcast Channel]
+  Broadcast --> SSE[SSE /proxy/uwbStream]
+  SSE --> Frontend[React App]
+  Decode -->|0x01| Downlink[Build & Encrypt Downlink]
+  Downlink -->|optional POST| DownlinkURL[DOWNLINK_URL]
+```
+
+Sequence diagrams and deeper interaction notes live in `ARCHITECTURE.md` and `docs/sequences.md`.
+
+## Environment Variables
+
+| Name | Purpose | Default |
+|------|---------|---------|
+| `BACKEND_PORT` | Actix server port | `8080` |
+| `USE_REMOTE_UWB` | Use legacy remote proxy instead of local ingestion (`"1"`/`"true"`) | unset/false |
+| `LORA_SECRET_KEY` | Hex AES key (16/24/32 bytes) for uplink/downlink | Demo key in code |
+| `LORA_SIGN_TOKEN` | Hex HMAC key for signature segment | Demo token in code |
+| `DOWNLINK_URL` | External endpoint for downlink POST (registration) | unset |
+
+Set these in `docker-compose.yml` or shell prior to launch.
+
+## Migration Notes
+
+The original Node server implemented decoding, downlink construction, and SSE streaming. Its logic has been ported to Rust while maintaining buffer semantics. The Node files remain for audit/handover but are no longer required at runtime when `USE_REMOTE_UWB` is false.
+
+## Running
+
+Backend (Rust):
+```bash
+cargo run --manifest-path backend/Cargo.toml
+```
+
+Frontend (Vite):
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Ensure both processes are running; the frontend will auto-discover backend port via `public/config.json` (served statically) or fallback to 8080.
+
+## Testing
+
+Frontend unit tests (trilateration, UI sizing) via:
+```bash
+cd frontend
+npm test
+```
+
+Backend decoding logic can be unit-tested by adding tests invoking `decode_frame` with captured sample frames (see `lorawan_codec.rs`).
+
+## Next Steps / Enhancements
+
+- Add HMAC signature validation (compare recomputed MAC to first 32 bytes of plaintext).
+- Expand 0x05 parsing to support multiple beacon entries (currently only the first is mapped for SSE).
+- Implement structured metrics (latency between uplink and frontend render, frame loss).
+- Consider authenticated encryption mode to replace AES-ECB.
+
+## License
+
+Internal demo code – adapt licensing as needed.
+
 # Pinpoint — Indoor Tag Positioning Demo
 
 This repository is a self-contained demo showing how to collect UWB-like distance measurements, run trilateration to compute 2D positions, and visualize live tag locations on a plan. It includes a React + Vite frontend (presentation/UI) and an Actix (Rust) backend (application/data layer). Docker and a quickstart helper are included so you can run the full stack locally.

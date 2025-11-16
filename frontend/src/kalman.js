@@ -1,6 +1,12 @@
-// Simple 2D Kalman filter for smoothing position updates per-device.
-// This is a minimal, easy-to-understand filter tuned for low-frequency
-// position updates from trilateration.
+// Minimal 2D Kalman Filter
+// ------------------------
+// Purpose: Smooth raw trilateration outputs subject to jitter/outliers.
+// Model: Stationary (no velocity term). Each update treats measurement as direct observation.
+// Tuning Parameters:
+//   q (process noise)  : higher -> faster adaptation (less smoothing persistence)
+//   r (measurement noise): higher -> stronger smoothing (trust prior state more)
+// State: position only ({x,y}) with independent covariance terms.
+// For more dynamic scenarios (e.g., moving worker with acceleration) extend to include velocity.
 
 export class Kalman2D {
   constructor(q = 0.0001, r = 0.01) {
@@ -13,12 +19,17 @@ export class Kalman2D {
     this.P = [[1,0],[0,1]]
   }
 
+  // Increase covariance (uncertainty) between measurements; no motion model applied.
   predict() {
     // no motion model (stationary model); only increase covariance
     this.P[0][0] += this.q
     this.P[1][1] += this.q
   }
 
+  /**
+   * Incorporate new measurement {x,y} and return filtered state.
+   * Uses scalar adaptation per axis; avoids matrix inversions for speed.
+   */
   update(z) {
     if(!this.x) {
       this.x = { x: z.x, y: z.y }

@@ -4,6 +4,32 @@
 // randomly chosen device position. This lets the frontend trilateration
 // logic be exercised without external hardware.
 
+//! Main backend entry point (Rust / Actix Web)
+//!
+//! Responsibilities:
+//! - Initialize Actix Web server and shared broadcast channel for local UWB ingestion.
+//! - Expose mock data endpoints (`/mock/stream`, `/mock/once`, `/positions`) used by the frontend
+//!   for development & testing without real hardware.
+//! - Conditionally expose either the legacy remote proxy stream (`/proxy/uwbStream`) OR
+//!   the local LoRaWAN ingestion endpoints (`POST /v1/uwb` + local SSE `/proxy/uwbStream`) based on
+//!   the `USE_REMOTE_UWB` environment variable.
+//! - Provide a migration bridge so the Node `server.ts` functionality can be retired.
+//!
+//! Key Environment Variables (documented again in `README.md`):
+//! - `BACKEND_PORT` (default 8080) : TCP port for this server.
+//! - `USE_REMOTE_UWB` ("1"/"true") : If set, use legacy remote upstream and proxy its SSE stream.
+//! - `LORA_SECRET_KEY` : Hex AES key for decrypting uplink (and encrypting downlink) frames.
+//! - `LORA_SIGN_TOKEN` : Hex HMAC key used when signing (HMAC-SHA256) uplink/downlink frames.
+//! - `DOWNLINK_URL` : Optional full URL for posting registration/downlink responses (0x01 messages).
+//!
+//! High-Level Data Flow (local ingestion mode):
+//! ```text
+//! LoRaWAN Device → Uplink HTTP (encrypted frame) → POST /v1/uwb
+//!    decode & classify (0x01 registration / 0x05 location / other) →
+//!    broadcast location updates via Tokio broadcast → SSE GET /proxy/uwbStream → Frontend
+//!    (optional) build + encrypt downlink (0x01) → POST DOWNLINK_URL → return status JSON
+//! ```
+//! See `ARCHITECTURE.md` and `docs/sequences.md` for Mermaid diagrams and deeper breakdown.
 use actix_web::{get, middleware, web, App, HttpServer, HttpResponse, Responder, Error};
 use actix_cors::Cors;
 use serde::Deserialize;
@@ -16,6 +42,8 @@ use async_stream::stream;
 use bytes::Bytes;
 use reqwest::Client as ReqwestClient;
 use std::env;
+mod lorawan_stream;
+mod lorawan_codec;
 
 #[derive(Deserialize)]
 struct QueryApiKey {
@@ -25,6 +53,9 @@ struct QueryApiKey {
 
 // Anchors (routers) at three corners (top-left, top-right, bottom-left)
 // The bottom-right corner intentionally has no anchor per requirements.
+/// Hard-coded mock anchors at three rectangle corners (top-left, top-right, bottom-left).
+/// We intentionally omit the bottom-right anchor to provide a mild asymmetry that
+/// exercises trilateration and path rendering logic.
 fn corner_anchors(width: f64, height: f64) -> Vec<(&'static str, f64, f64)> {
     vec![
         ("020000b3", 0.0, 0.0),           // top-left
@@ -37,6 +68,9 @@ fn corner_anchors(width: f64, height: f64) -> Vec<(&'static str, f64, f64)> {
 // Middle -> left edge -> right edge -> middle -> bottom edge -> top edge -> middle
 // -> left edge to bottom-left anchor -> along bottom to bottom-right (virtual)
 // -> up right edge to top-right anchor -> along top to top-left anchor -> back to middle.
+/// Deterministic path waypoints traversed by the mock streaming generator.
+/// The device moves segment-by-segment with a fixed fractional step (`step` in `mock_stream`).
+/// Keeping this deterministic simplifies automated UI tests that rely on predictable motion.
 fn path_waypoints(width: f64, height: f64) -> Vec<(f64, f64)> {
     let cx = width / 2.0;
     let cy = height / 2.0;
@@ -63,6 +97,9 @@ fn path_waypoints(width: f64, height: f64) -> Vec<(f64, f64)> {
 
 // Generate a single uwb_update payload with random device position inside
 // the factory bounds (width x height in meters).
+/// Generate a single `uwb_update` JSON payload representing the tag at `(x,y)` (meters).
+/// Distances are computed in 3D (shared anchor Z + tag Z) to allow solver testing
+/// where Z differences exist yet anchors share a common altitude (cancels out in 2D math).
 fn generate_uwb_update_for_pos(x: f64, y: f64, width: f64, height: f64, anchor_z: f64, tag_z: f64) -> serde_json::Value {
     let mut beacons = vec![];
     for (id, ax, ay) in corner_anchors(width, height) {
@@ -96,12 +133,16 @@ fn generate_uwb_update_for_pos(x: f64, y: f64, width: f64, height: f64, anchor_z
 }
 
 // Create an SSE-style text block for a given payload value
+/// Convert a JSON payload into an SSE event block (`event: uwb_update`).
+/// We prefix every data line with `data:` to remain robust to multiline JSON formatting.
 fn sse_event_block(payload: &serde_json::Value) -> String {
     let data = payload.to_string();
     format!("event: uwb_update\n{}\n\n", data.split('\n').map(|l| format!("data: {}", l)).collect::<Vec<_>>().join("\n"))
 }
 
 // Mock streaming endpoint: emits a uwb_update every `interval_ms` milliseconds.
+/// Mock streaming endpoint producing a synthetic trajectory as SSE (`event: uwb_update`).
+/// Query parameters offer perturbations (noise/outliers/dropouts/zeros) to stress-test the solver.
 #[get("/mock/stream")]
 async fn mock_stream(query: web::Query<HashMap<String, String>>) -> Result<HttpResponse, Error> {
     let width = query.get("w").and_then(|s| s.parse::<f64>().ok()).unwrap_or(20.0);
@@ -189,6 +230,7 @@ async fn mock_stream(query: web::Query<HashMap<String, String>>) -> Result<HttpR
 }
 
 // Single-shot mock endpoint: emits one `uwb_update` payload (distances in cm)
+/// Single-shot mock endpoint returning one synthetic `uwb_update` (or an SSE block if `?sse=1`).
 #[get("/mock/once")]
 async fn mock_once(query: web::Query<HashMap<String, String>>) -> Result<HttpResponse, Error> {
     let width = query.get("w").and_then(|s| s.parse::<f64>().ok()).unwrap_or(20.0);
@@ -257,6 +299,8 @@ async fn mock_once(query: web::Query<HashMap<String, String>>) -> Result<HttpRes
 
 // Proxy streaming endpoint: exchanges refresh token for access token and
 // forwards the remote streaming response as-is to the client.
+/// Legacy proxy mode: fetch remote access token then stream upstream SSE directly.
+/// Only registered when `USE_REMOTE_UWB` is true. Local ingestion replaces this path.
 #[get("/proxy/uwbStream")]
 async fn proxy_uwb_stream() -> Result<HttpResponse, Error> {
     // refresh token is hardcoded as per requirements
@@ -289,6 +333,8 @@ async fn proxy_uwb_stream() -> Result<HttpResponse, Error> {
         .streaming(s))
 }
 
+/// Simple snapshot endpoint providing one `uwb_update` with the tag at the rectangle center.
+/// Used by historical code paths / tests that expected a non-streaming position sample.
 #[get("/positions")]
 async fn positions(_q: web::Query<QueryApiKey>) -> impl Responder {
     // Factory bounds — default values; provide center snapshot
@@ -310,7 +356,7 @@ mod tests {
 
     #[test]
     fn generate_uwb_update_shape() {
-        let v = generate_uwb_update(20.0, 10.0);
+        let v = generate_uwb_update_for_pos(10.0, 5.0, 20.0, 10.0, 1.5, 1.5);
         // type must be present
         assert_eq!(v.get("type").and_then(|t| t.as_str()), Some("uwb_update"));
         // payload must contain beacons array
@@ -325,8 +371,18 @@ mod tests {
 
     #[test]
     fn generate_uwb_update_distances_are_cm_ints_and_in_range() {
-        let v = generate_uwb_update(20.0, 10.0);
-        let beacons = v.get("payload").and_then(|p| p.get("beacons")).and_then(|b| b.as_array()).expect("beacons array expected");
+        let v = generate_uwb_update_for_pos(10.0, 5.0, 20.0, 10.0, 1.5, 1.5);
+        let mut v_cm = v.clone();
+        if let Some(payload) = v_cm.get_mut("payload") {
+            if let Some(arr) = payload.get_mut("beacons").and_then(|b| b.as_array_mut()) {
+                for b in arr.iter_mut() {
+                    if let Some(d) = b.get("distance").and_then(|v| v.as_f64()) {
+                        b["distance"] = json!((d*100.0).round() as i64);
+                    }
+                }
+            }
+        }
+        let beacons = v_cm.get("payload").and_then(|p| p.get("beacons")).and_then(|b| b.as_array()).expect("beacons array expected");
         for b in beacons {
             // distance should be present
             let d = b.get("distance").expect("distance present");
@@ -343,12 +399,41 @@ mod tests {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    env_logger::init();
+    // Initialize tracing subscriber (env-controlled filter) and metrics exporter (Prometheus).
+    use tracing_subscriber::{EnvFilter, fmt};
+    let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
+    fmt().with_env_filter(filter).init();
+    // Prometheus exporter binding (on separate port) can be optionally started; environment toggle could be added.
+    use metrics_exporter_prometheus::{PrometheusBuilder, PrometheusHandle};
+    use once_cell::sync::Lazy;
+    static PROM_HANDLE: Lazy<PrometheusHandle> = Lazy::new(|| PrometheusBuilder::new().install_recorder().expect("prometheus recorder install"));
+    // Optionally expose metrics endpoint if METRICS_PORT provided.
+    if let Ok(mp) = std::env::var("METRICS_PORT").and_then(|s| s.parse::<u16>().map_err(|_| std::env::VarError::NotPresent)) {
+        let handle_clone = PROM_HANDLE.clone();
+        std::thread::spawn(move || {
+            let addr = format!("0.0.0.0:{}", mp);
+            // Simple HTTP metrics exporter using tiny_http to avoid extra async complexity.
+            if let Ok(server) = tiny_http::Server::http(&addr) {
+                tracing::info!(%addr, "metrics server started");
+                for rq in server.incoming_requests() {
+                    let body = handle_clone.render();
+                    let response = tiny_http::Response::from_string(body).with_header(tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"text/plain"[..]).unwrap());
+                    let _ = rq.respond(response);
+                }
+            } else {
+                tracing::warn!(%addr, "failed to start metrics server");
+            }
+        });
+    }
     // Read runtime configuration from environment
     let backend_port: u16 = env::var("BACKEND_PORT").ok()
         .and_then(|s| s.parse::<u16>().ok())
         .unwrap_or(8080);
     let frontend_port_str = env::var("FRONTEND_PORT").unwrap_or_else(|_| "3000".to_string());
+    let use_remote_uwb = env::var("USE_REMOTE_UWB").map(|s| s=="1" || s.eq_ignore_ascii_case("true")).unwrap_or(false);
+
+    // Broadcast channel for local UWB ingestion -> SSE
+    let (tx, _rx) = tokio::sync::broadcast::channel::<String>(256);
 
     HttpServer::new(move || {
         // For demos, allow origins dynamically to avoid accidental 400 CORS errors
@@ -366,13 +451,20 @@ async fn main() -> std::io::Result<()> {
                 true
             });
 
-        App::new()
+        let app = App::new()
             .wrap(middleware::Logger::default())
             .wrap(cors)
             .service(positions)
             .service(mock_stream)
             .service(mock_once)
-            .service(proxy_uwb_stream)
+            ;
+
+        // Conditional registration: remote proxy OR local ingestion (LoRaWAN decode + SSE)
+        if use_remote_uwb {
+            app.service(proxy_uwb_stream)
+        } else {
+            app.configure(|cfg| lorawan_stream::config(cfg, tx.clone()))
+        }
     })
     .bind(("0.0.0.0", backend_port))?
     .run()

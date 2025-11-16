@@ -15,3 +15,17 @@ reqwest = { version = "0.11", features = ["json", "stream", "rustls-tls"] }
 futures-util = "0.3"
 async-stream = "0.3"
 bytes = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "sync"] }
+hmac = "0.12"
+sha2 = "0.10"
+base64 = "0.21"
+hex = "0.4"
+aes = "0.8"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
+metrics = "0.22"
+metrics-exporter-prometheus = "0.14"
+once_cell = "1"
+tiny_http = "0.12"
+ecb = "0.1"
+cipher = { version = "0.4", features = ["block-padding"] }
