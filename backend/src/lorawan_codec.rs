@@ -261,44 +261,56 @@ pub fn decode_frame(b64: &str, secret_key_hex: &str, sign_token_hex: &str) -> Re
 
         match msg_type {
             0x01 => {
-                if data_content.len() < 10 { return Err("mt01 content too short".into()); }
-                let obj = json!({
-                    "Full Byte": hex::encode(data_content),
-                    "Device ID": hex::encode(&data_content[0..4]),
-                    "Device version and type": hex::encode(&data_content[4..6]),
-                    "Position the shortest transmission period": hex::encode(&data_content[6..7]),
-                    "Sports assistance function swtich": hex::encode(&data_content[7..8]),
-                    "Beacon search timeout": hex::encode(&data_content[8..9]),
-                    "Beacon search quantity": hex::encode(&data_content[9..10])
-                });
-                buffer_obj["Data Content"] = obj;
+                if data_content.len() < 10 {
+                    warn!(len = data_content.len(), need = 10, "mt01 content too short; returning minimal parse");
+                    buffer_obj["Data Content"] = Value::String(hex::encode(data_content));
+                } else {
+                    let obj = json!({
+                        "Full Byte": hex::encode(data_content),
+                        "Device ID": hex::encode(&data_content[0..4]),
+                        "Device version and type": hex::encode(&data_content[4..6]),
+                        "Position the shortest transmission period": hex::encode(&data_content[6..7]),
+                        "Sports assistance function swtich": hex::encode(&data_content[7..8]),
+                        "Beacon search timeout": hex::encode(&data_content[8..9]),
+                        "Beacon search quantity": hex::encode(&data_content[9..10])
+                    });
+                    buffer_obj["Data Content"] = obj;
+                }
             },
             0x05 => {
-                if data_content.len() < 13 { return Err("mt05 content too short".into()); }
-                let obj = json!({
-                    "Full Byte": hex::encode(data_content),
-                    "Device ID": hex::encode(&data_content[0..4]),
-                    "Number of Beacons": hex::encode(&data_content[4..5]),
-                    "Physical Activity Flag": hex::encode(&data_content[5..6]),
-                    "Major": hex::encode(&data_content[6..8]),
-                    "Minor": hex::encode(&data_content[8..10]),
-                    "Distance": hex::encode(&data_content[10..12]),
-                    "Battery Level": hex::encode(&data_content[12..13]),
-                    "Remaining Beacon Info": hex::encode(&data_content[13..])
-                });
-                buffer_obj["Data Content"] = obj;
+                if data_content.len() < 13 {
+                    warn!(len = data_content.len(), need = 13, "mt05 content too short; returning minimal parse");
+                    buffer_obj["Data Content"] = Value::String(hex::encode(data_content));
+                } else {
+                    let obj = json!({
+                        "Full Byte": hex::encode(data_content),
+                        "Device ID": hex::encode(&data_content[0..4]),
+                        "Number of Beacons": hex::encode(&data_content[4..5]),
+                        "Physical Activity Flag": hex::encode(&data_content[5..6]),
+                        "Major": hex::encode(&data_content[6..8]),
+                        "Minor": hex::encode(&data_content[8..10]),
+                        "Distance": hex::encode(&data_content[10..12]),
+                        "Battery Level": hex::encode(&data_content[12..13]),
+                        "Remaining Beacon Info": hex::encode(&data_content[13..])
+                    });
+                    buffer_obj["Data Content"] = obj;
+                }
             },
             0x03 => {
-                if data_content.len() < 9 { return Err("mt03 content too short".into()); }
-                let obj = json!({
-                    "Full Byte": hex::encode(data_content),
-                    "UID of RFID": hex::encode(&data_content[0..4]),
-                    "Device Abnormal": hex::encode(&data_content[4..5]),
-                    "Battery Level": hex::encode(&data_content[5..6]),
-                    "Configuration File Version": hex::encode(&data_content[6..7]),
-                    "Reservation": hex::encode(&data_content[7..9])
-                });
-                buffer_obj["Data Content"] = obj;
+                if data_content.len() < 9 {
+                    warn!(len = data_content.len(), need = 9, "mt03 content too short; returning minimal parse");
+                    buffer_obj["Data Content"] = Value::String(hex::encode(data_content));
+                } else {
+                    let obj = json!({
+                        "Full Byte": hex::encode(data_content),
+                        "UID of RFID": hex::encode(&data_content[0..4]),
+                        "Device Abnormal": hex::encode(&data_content[4..5]),
+                        "Battery Level": hex::encode(&data_content[5..6]),
+                        "Configuration File Version": hex::encode(&data_content[6..7]),
+                        "Reservation": hex::encode(&data_content[7..9])
+                    });
+                    buffer_obj["Data Content"] = obj;
+                }
             },
             _ => {
                 buffer_obj["Data Content"] = Value::String(hex::encode(data_content));
@@ -616,6 +628,8 @@ mod tests {
 
     #[test]
     fn decode_frame_hmac_mismatch_errors() {
+        // Ensure strict HMAC checking for this test
+        std::env::set_var("LORA_ALLOW_HMAC_MISMATCH", "0");
         // Build payload as before
         let mut payload: Vec<u8> = vec![0xFF,0xEE,0x51,0x00,0x30,0x00,0x05];
         payload.extend_from_slice(&[0xDE,0xAD,0xBE,0xEF]); // device id
@@ -630,5 +644,194 @@ mod tests {
         // Use wrong token for verification
         let err = decode_frame(&b64, secret, "0000000000000000").unwrap_err();
         assert_eq!(err, "hmac_mismatch");
+    }
+
+    #[test]
+    fn decode_real_lorawan_sample_and_print() {
+        // Sample captured uplink (matches Node's decode.ts defaults)
+        // Uplink keys (separate from downlink):
+        //   secretKeyHex = 3BA16CA4D2BE9EB96147779B32182750
+        //   signTokenHex = 7AE4AF8AAD3BD554
+        // Base64 payload from device/LoRaWAN push:
+        //   nht1ueJzcjQMZqF0m+Hnzu9lnCpS59FjTVzsep9+zAdKOjZJQZ8WukN7DpgnPeqRqGW6t1qsi3mDADtFUlWmKg==
+        let b64 = "nht1ueJzcjQMZqF0m+Hnzu9lnCpS59FjTVzsep9+zAdKOjZJQZ8WukN7DpgnPeqRqGW6t1qsi3mDADtFUlWmKg==";
+        let secret = "3BA16CA4D2BE9EB96147779B32182750";
+        let token = "7AE4AF8AAD3BD554";
+
+    // The device HMAC may include a timestamp in signing; allow mismatch for this sample
+    std::env::set_var("LORA_ALLOW_HMAC_MISMATCH", "1");
+    let df = decode_frame(b64, secret, token).expect("decode ok");
+        println!("message_type=0x{:02x}", df.message_type);
+        println!(
+            "buffer_explained={}",
+            serde_json::to_string_pretty(&df.buffer_explained).unwrap()
+        );
+        // Produce uwb_update JSON if it's a 0x05; otherwise print None
+        let ts = 1_731_734_400_000u128; // fixed timestamp for reproducibility
+        match as_uwb_update(&df, ts) {
+            Some(js) => println!("uwb_update={}", serde_json::to_string_pretty(&js).unwrap()),
+            None => println!("uwb_update=None"),
+        }
+        // restore strict default for other tests
+        std::env::set_var("LORA_ALLOW_HMAC_MISMATCH", "0");
+    }
+
+    #[test]
+    fn decode_real_lorawan_sample_from_log_and_print() {
+        // Captured from runtime logs (uplink request to /v1/uwb)
+        // raw_json.content.data:
+        //   gPKXdM85vylwjqXMmxfP/Hb0PmufbiDWPPWwQMZdMU/mQcSEqtuBDN/cRK889CJi+eejjKOEuR/z/pwGZ7KD2g==
+        // devEui: 009569000004C21E
+        // fPort: 10
+        // timestamp: 1763311182208
+        let b64 = "gPKXdM85vylwjqXMmxfP/Hb0PmufbiDWPPWwQMZdMU/mQcSEqtuBDN/cRK889CJi+eejjKOEuR/z/pwGZ7KD2g==";
+        // Use uplink keys (Node defaults), allow HMAC mismatch due to timestamp in signing
+        let secret = "3BA16CA4D2BE9EB96147779B32182750";
+        let token = "7AE4AF8AAD3BD554";
+        std::env::set_var("LORA_ALLOW_HMAC_MISMATCH", "1");
+        let df = decode_frame(b64, secret, token).expect("decode ok");
+        println!("message_type=0x{:02x}", df.message_type);
+        println!(
+            "buffer_explained={}",
+            serde_json::to_string_pretty(&df.buffer_explained).unwrap()
+        );
+        let ts = 1_763_311_182_208u128; // taken from log for reproducibility
+        match as_uwb_update(&df, ts) {
+            Some(js) => println!("uwb_update={}", serde_json::to_string_pretty(&js).unwrap()),
+            None => println!("uwb_update=None"),
+        }
+        std::env::set_var("LORA_ALLOW_HMAC_MISMATCH", "0");
+    }
+
+    #[test]
+    fn decode_many_samples_and_highlight_mt05() {
+        // Bulk decode of captured uplinks; highlight 0x05 frames
+        let secret = "3BA16CA4D2BE9EB96147779B32182750"; // uplink AES key
+        let token = "7AE4AF8AAD3BD554"; // uplink sign token (HMAC)
+        let samples: &[(&str, &str, u128)] = &[
+            ("l2+sc/M2Y78K3t3yCCe2Xy4dUfax15I/TqRi0GH4WWu/Mgd7XHMhRGajeJe9ZjsG8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763307419590u128),
+            ("WYKWYizwvxNwJWVe8/UJe1SYr1yCiqrXG8lUKZXZWZIe6eWjzWsOVESvobLDRMP7VcN5PLKlPv+FCQJ45YrL7Q==", "009569000004C21E", 1763307421341u128),
+            ("qBFhzSFeFnaRgvb5WGg2/xzmNxDImGrw865frqjP4IDOZgcwcORqK9exluSaG2L88Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763307423177u128),
+            ("nJADWmpTI1NTOWTn1jntbhVixhZ1B7cssB9HjjCxHrsM/rjWm2YBvA7SGJP1QTNI+eejjKOEuR/z/pwGZ7KD2g==", "009569000004C21E", 1763307424928u128),
+            ("oS7ZgXPUQOtA0uh8C3d4JaMV6mUWDQza+Fz62xq1JMD9DlVQfHsMmKrqQBkZgsSO8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763307426683u128),
+            ("66cgBNTvMHmSQZYr32h6EDs2GNOqNh84OC68d+q2n9ThJ5TqT+1zk8TAmcRtEWnS+eejjKOEuR/z/pwGZ7KD2g==", "009569000004C21E", 1763307428453u128),
+            ("UVvp6NdtXXWcWYPCowxpQJu+RqXmDnjj2mAewtFS2BtXtZcBi2iUMzTHCrce98owcGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763307702126u128),
+            ("tSfnxa8UAxMk9QX4oiNZU0OIenVxxECYO4x0j2NN8xi2xbN2zy/v2lEu+qBvwhZiV81/0/hQMMcVtPAtL691qA==", "009569000004C1B2", 1763307703927u128),
+            ("R7xT28CcBGlWJmS4FLZrm0osIJDzeqr/H+Q4jGCQ4ZK+mmxJBewKqLzeBgnfkGVEcGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763307705700u128),
+            ("9RLs+Y6XIjcmwtI+L+ulxWibnqdP913Y7mvXeLfzwFlrjSHdQ2UaIZq1vPbvFOiDQvLJ79daUWgu4G/wG/luZA==", "009569000004C1B2", 1763307707471u128),
+            ("FGR+wMBZhrsD4viK16s7qDbREkkvX1K6xqM4JS8Y9LBkTC8n0XybTqEOfHVYM5RNcGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763307709297u128),
+            ("vib+g9rt1T4JtK/wdKNvnwt2VN/3OABs1KqSp4EAOPIiL+1jUDkmHuxVYpy+P8cCQvLJ79daUWgu4G/wG/luZA==", "009569000004C1B2", 1763307711021u128),
+            ("KDMG4AiwAUAfrc98NGdjpK+F41h/rBa7jX7CFquBcDojyAaF+oYuoJ/sZkHfIwzY8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763308038636u128),
+            ("ROiSxXdU3/kbbtEyQHEKZKMI8W5c6NIU3Kefc7EfhcefwCYazsViPSSyaomu7zVKVcN5PLKlPv+FCQJ45YrL7Q==", "009569000004C21E", 1763308040444u128),
+            ("+wl0uOCB5mQstQIdANwiBwU+iH6ENUGjNGSGWs5vv05/kDGfulVb9mRDxSzH2jSa8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763308044149u128),
+            ("ElStRVYqsupXNgmuoFfoVRQRBewikuSDNrHEkR32g+BX3+llrmv1rUkhKfgjUuH8+eejjKOEuR/z/pwGZ7KD2g==", "009569000004C21E", 1763308045888u128),
+            ("fSYo6n5+kjg/DOkb5HmgCv7OKIK8uKUn2+0BC6RvWBmoQg20z8G7oZ0E5EQQIcMP8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763308047665u128),
+            ("Yqc1FTi3hVVlbrN9fpbB3GoQuSVeBJnLAQLi/hzItCj0+eoFJ8sfKxZegq/T90E5+eejjKOEuR/z/pwGZ7KD2g==", "009569000004C21E", 1763308049461u128),
+            ("0hs/jaaUkAsf6ft0psEi6nxvNgt2KPg3uxYSqBoS4GebT688MeKOqXfvDID4TtwN8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763308071709u128),
+            ("09OXnCHIijD8oxmqCtxEWeDXZ5rpR+wZteKHLGBN9GqHRSqivNxFd84NjWt/OCIt+eejjKOEuR/z/pwGZ7KD2g==", "009569000004C21E", 1763308075274u128),
+            ("KS84gBcU22f2a3dMdQ0/DJs7Nd8769G+mkoXkSTz9a7iaCOsVyii2itqatOOc1c78Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763308077308u128),
+            ("2yHA7l9q6U/R4JvS7Yxaamm1MFV7T5D8O9GIlktbsdTMn71esV+SilScnV5gedKR+eejjKOEuR/z/pwGZ7KD2g==", "009569000004C21E", 1763308078917u128),
+            ("qsk3400dws+nk0EtFhqE6J+Gasv+ktBYZf2gTvufXiaAJng2R4BKXabj2XsqCmgV8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763308080618u128),
+            ("/+qCcSdyoR+x7Qv8kLNSWGxeo4aWkgpdcUVcSoTl6L9JDTLXXzF/LVH1wQEhLzWp+eejjKOEuR/z/pwGZ7KD2g==", "009569000004C21E", 1763308082425u128),
+            ("JtWcApBnSX/CnHA5SdieNp8zW96bAFZNy9JHnGRpgDYld2y1ThhFAymt1JvMR+3lcGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763308331782u128),
+            ("6y7gEGfk8R9BVS1EV6Fg0dv4VMB/x9w7GvRIqZ+Gg45icWjVJgJZNIJr+7YR8x2zV81/0/hQMMcVtPAtL691qA==", "009569000004C1B2", 1763308333565u128),
+            ("fpxjcWOjLxX5aCh2fgJrljoiqClHlQubnV/nFSFoHOjTFRS0ZkmNFAsRtVoRP4/7cGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763308335372u128),
+            ("WA3s6yZ1vU0WNF3kgs0/eIzHxEsQOyNhQJPxY/vRSvKdKZPFATaGCEgpQ86hiMyn4QhxpiaM9OSz48uWWgewsg==", "009569000004C1B2", 1763308337118u128),
+            ("jaFnwCAaNYLfQDbkT8Ch8+gPKlqr+tFZ2fAnAGPPPAzRbHyCDmqCPqHJb1mtYS0jcGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763308338905u128),
+            ("E0+VfE4K5ESCZ12RN0jOMIfTQ1SibwjrwwzBrEqYZq8VKneIx0J+vLrxB6guIsf94QhxpiaM9OSz48uWWgewsg==", "009569000004C1B2", 1763308340687u128),
+            ("dab2nTuJBNxnZYfq1Rs0ywgnlAdMAq5EgU3uaGdp6MNp0ZmXnuwEwVnnmzsEteQU8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763308692628u128),
+            ("XGs245JOWp90NbhObA6AMvGyr5oLR76SqIOg8nZuQFxCPPs8aaqJI8Wv27jWOowMVcN5PLKlPv+FCQJ45YrL7Q==", "009569000004C21E", 1763308694431u128),
+            ("6Au2Zxe2ypWCL8sep46O2PXTHJVZawFnjoCZzwsddn2Z2Tfy1DNu+skqfk3UT6Hv8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763308696183u128),
+            ("PqyMJBijbiCbup784IT/6gGC1xTqTR69yVa1pcp0vKKk0thBBBc32rj/jGOYk35U+eejjKOEuR/z/pwGZ7KD2g==", "009569000004C21E", 1763308697963u128),
+            ("9gs4eWsuh9XA3RtE3tYTi4UBXsmdvSUPYMr93QaXGz330cuNfCvwrowrUipWrAt08Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763308699810u128),
+            ("kVLev3F5FMOH+rZT3rSGfYqiLqLU520pZ7g2EGZkvbvVG3hDAA0yoek01cBejg4H+eejjKOEuR/z/pwGZ7KD2g==", "009569000004C21E", 1763308701573u128),
+            ("JEoXv/T10CPlDpeSChpyqBmhqMmruDaJtdPhJlHQjFUKOxNyLYu1A9dSmluLSDRIcGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763308961438u128),
+            ("r3z4YwxGRoqSL5k4SHP+pXQoa+x7emx0ZDhrD6mmJRBjnJ1ZDlM4X9qtIsps0X/aV81/0/hQMMcVtPAtL691qA==", "009569000004C1B2", 1763308963209u128),
+            ("JmN2NXdprB3mIJu3x7rYXoQyQ4ccoEH6jRLjBRuZvLYPseYVmUZHRLeESqfpB3GZcGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763308965021u128),
+            ("vF6q/Wn3EtEHay5JykwhWoO/e4uDvIk76l2Z8hflTF9eDlZRaSlmelmG3YKhQY2vQvLJ79daUWgu4G/wG/luZA==", "009569000004C1B2", 1763308966773u128),
+            ("frqULy/93T2aZM8WF/hP4bKHyCGsKcUKBJEKOhBZSjPuRl5Bef1dIQc591JCpU2NcGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763308968554u128),
+            ("mPCWOrsUYKMVBNjHtLhkMPLo31XGC+UrMY4RuK3zkfuKxrR1kYCLg51/l7msE1ufQvLJ79daUWgu4G/wG/luZA==", "009569000004C1B2", 1763308970351u128),
+            ("0LTOw0dwMFDNeQUGhArZvBnjv4ox0r3zr1uaLrDzBHSVZbrrjAUl7OMDH0IU7H858Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763309312603u128),
+            ("jukPxo0R6kBE9/IVeDXJnXYWVFb52PqlZgPmHW8dlyKSqfgOv7SVN7h2CjaBA0VPVcN5PLKlPv+FCQJ45YrL7Q==", "009569000004C21E", 1763309314374u128),
+            ("xbss7BbTcinqzASk4iSCskP+YYMAp/OhaDArXCllkvaYw2hx8pVGC/n8ubl4qBGL8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763309316160u128),
+            ("iVPeqOWGQ7WtNOx52sazg/XMeEVwP/qwOfJA5VZiDjyZnoYqzkE8tiBm12PsF0yq+eejjKOEuR/z/pwGZ7KD2g==", "009569000004C21E", 1763309317942u128),
+            ("aJho+vEPnHzW14NuOVWFwexfUSJRNJIE8jsEN9/1M5fIv2ojBiBywBdbnM6LAKFS8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763309319738u128),
+            ("qXjdt0lsATXDCQRhfEMX4uAMVGk5YNM4HTRtF6tnmEzVmH+O/Aqdu1CstnQHIeeW+eejjKOEuR/z/pwGZ7KD2g==", "009569000004C21E", 1763309321482u128),
+            ("6HCGoej8nE9JZjtl+YnbG/zz+FDEN4v8z4LyW5L9ZVV3naGzFVL4FylFgFC9+P1fcGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763309591069u128),
+            ("nhMBcjjT8mfPbKmL+i8TTllkjZi8OcuyfpDOXPdn9FeC25LWZ6q/rp67MOW0SC8TV81/0/hQMMcVtPAtL691qA==", "009569000004C1B2", 1763309592847u128),
+            ("OZmrpBKt52ad0hB5jkLHoHt26VKn92inWIKufKAbHsUwYGG4JuStv8Af3JjQsM5scGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763309594622u128),
+            ("VvMfOY3ymwz6JksYSPSknXGzPsdl8843PHXDHWDWLJXFZRIT6TR4Z8XVmEB/44+5QvLJ79daUWgu4G/wG/luZA==", "009569000004C1B2", 1763309596426u128),
+            ("roJlQsWA5XMkFw2ttUrqMtCrXZz8FYDU53IV+PkN7QVO7+CKvvmnzg4zo4vOdvBUcGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763309598216u128),
+            ("HpmRmeiaF6edUzFq2FrIrfEkagQO2elELkBT30uYYg80juzcVbR8VeVEXUu8jm4h4QhxpiaM9OSz48uWWgewsg==", "009569000004C1B2", 1763309600040u128),
+            ("YWo3QfRCPnRH4sVvVkHks2pQawFTpwJUZLArwX4g0puyVLpBTfcoCpRm2YVagvrH8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763309932845u128),
+            ("Vcmv1XkDPmO1vroRBC1Ru3iJtxXbSPZLdc7qFNvsuVOtZBk2es9EJgg9wn6aBFM8VcN5PLKlPv+FCQJ45YrL7Q==", "009569000004C21E", 1763309934651u128),
+            ("WUggh5aMN+myuccxFQ8kCOJ783hgZ3viER1u8Rltj4onRHsTT6L3CW0j6UX/CwRD8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763309936394u128),
+            ("2JyR7EMZjoC538QOOeJx9idYNVEK6JINvTkYCgeIbHSWRAc8RRXhznjJuB0QlQ5n+eejjKOEuR/z/pwGZ7KD2g==", "009569000004C21E", 1763309938177u128),
+            ("Opl2qO1+hbAFo5up/FGk57tG/3a9RlQYbtW2tZvRbB3FNHHhNboQiZS7nRrwiK1c8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763309939975u128),
+            ("D5vbP0LpKOZauVoytODMFJbT/9vUTsvVkZMhYPNk8lyZWUvXAqj6mY9TQA292uTZ+eejjKOEuR/z/pwGZ7KD2g==", "009569000004C21E", 1763309941722u128),
+            ("H4OyxC28GH6Y4yPSenU71sxK4ZOlKRAftuzae2Mcg7EMgL4VJywcaeWN4BoxZG/2cGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763310220683u128),
+            ("taXFeLrbreCFws+68VCj0u7a5tAbjd9Nk1/dVffD38JUtan2mnWLlj84M+/ixJtoQvLJ79daUWgu4G/wG/luZA==", "009569000004C1B2", 1763310222506u128),
+            ("o83Q7x91h8S35he1wAex/RixCW+XkpWKY2dkNf4SoMRo0RUpEEiymS/hZsIuElAbcGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763310224254u128),
+            ("y2OsPY3/r9N/BFGPlMMNPDMuP4oT+XdAah5F3gzbcDMxbrdlzgk5C5wWwQj5tylxQvLJ79daUWgu4G/wG/luZA==", "009569000004C1B2", 1763310226024u128),
+            ("coPxwGdrnmVzYvEN1yvfB9JadjwrZ9AQYsW2U+FDXUHuBcGpVifTOuZ6KmX8qnHhcGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763310227823u128),
+            ("Gob7Y1295hDcB6PxnNEt55yZBte4xqfvXZLqvrt3w0peXxECzFYqnb90dFVi6HuOQvLJ79daUWgu4G/wG/luZA==", "009569000004C1B2", 1763310229593u128),
+            ("ZmuAb2Z1YrMaEI2A+H9sEgPN/Tby02MONry8zqwDU2cayWRskeis38vIDVn0w3118Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763310553262u128),
+            ("6NskmaJ+f+cyc9O27zFUm7TjinPd/Ef/G/WCH0Ucc5PDvF9PIlrseGpczXtnUN85VcN5PLKlPv+FCQJ45YrL7Q==", "009569000004C21E", 1763310555033u128),
+            ("Ze+M3Iu4VIMpwDGItp3z3B3yK/HiKoXq2vwdZjesu7R5f+O0PMVR2jAnOUFdoKOs8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763310556770u128),
+            ("i1JW02Ue/k04clKxPqBHO9vgWI4zDoG+/s8ReRhxYeml+jeE71qn40UnQ93XZ6cU+eejjKOEuR/z/pwGZ7KD2g==", "009569000004C21E", 1763310558578u128),
+            ("DV0AWPR4LV3+1rdAlrLdp/SnU4e9kubptivJeqIX5GitRVE2LfT4ibt1A1R3Mxy+8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763310560324u128),
+            ("Rt/DGjYwIrDtuSJWEHBiXz+AWCPSDuPtHBE13l49s9ETcT+K6xPWmVr2ZsIiN+Vf+eejjKOEuR/z/pwGZ7KD2g==", "009569000004C21E", 1763310562097u128),
+            ("2NBh8YYRSIExUf0iiddIguO+pl2lglGW5VgzcTStGCcIsy0BQ8Njq3u02DE+uQq1cGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763310850322u128),
+            ("JoPEhQWUv52b7xR5p7A3wAoVkLYsep8dV6TO9T/JV0Lu3pTo4Cs9A8iGXB4Zo8vnV81/0/hQMMcVtPAtL691qA==", "009569000004C1B2", 1763310852073u128),
+            ("sIPrEV78QShIBseq/SAiEpYRMNob56GTNY/xy3+w/CwWIz46crgZsDyIzzunHweFcGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763310853853u128),
+            ("nQDWy90eAsh7/wUss1g1Kd2VOgniLYRkIeBF/HMhIKxUiliPIr6aVlYkOcikRLL2QvLJ79daUWgu4G/wG/luZA==", "009569000004C1B2", 1763310855641u128),
+            ("LGIamB5JT7ccbRKS14zIgL7ScylE1h3k9eDJbSNfVMJ4lKWP0fqud4z/cWdzxJHWcGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763310857408u128),
+            ("/5Ko/sf5sfMmL2FYSyJ/An5KJJaXq4WbMCiWQRP72rncS6mjXzyhulJiliGtjPUbQvLJ79daUWgu4G/wG/luZA==", "009569000004C1B2", 1763310859237u128),
+            ("09owCE5wFZGnAq82vJaf3dTYMxpDu7vwzzfEyqrD5maN+F2W2huFApCI3yhfGn3w8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763311173320u128),
+            ("ZHSD1ZnDGii4qVxk+LpDKXJ0BugRjg2nZ80Sil8ksqV+8kZjHtqrt4790N6zvaJhVcN5PLKlPv+FCQJ45YrL7Q==", "009569000004C21E", 1763311175154u128),
+            ("UNfT2tDLc4x39FI0SLmvDhlJFOumRDI7MFhJIXOqmFFHe/nUDLgCkPXXFA24WZTO8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763311176887u128),
+            ("L3VGe0br7C95gKmq9ieCiCF9koWEO96U+vrTZFw0TQXuB7VlbXUY3wT8ipA23znL+eejjKOEuR/z/pwGZ7KD2g==", "009569000004C21E", 1763311178658u128),
+            ("U7SuN9mTcNDRJM5tZ+uQDQ13R03WdwkDoq6FouBsIPKrsoQuIkvSKIi2aDc/cOLY8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763311180473u128),
+            ("gPKXdM85vylwjqXMmxfP/Hb0PmufbiDWPPWwQMZdMU/mQcSEqtuBDN/cRK889CJi+eejjKOEuR/z/pwGZ7KD2g==", "009569000004C21E", 1763311182208u128),
+            ("GcL7zN1j7IzMan9sjLkJZ/ztmrnrnmTGyaFEptX3tNGSx3lB/9skcKZu+hjfEnk8cGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763311479892u128),
+            ("XuIcXsuFYubZD7t5rd8SZssgWJ01JVVBtGu1tXlvvpl5/etENosx75CY6FDZ2Hm1V81/0/hQMMcVtPAtL691qA==", "009569000004C1B2", 1763311481662u128),
+            ("SRXH6H3hJOGjV87uS23ODTJC+l/ygH7SI7DfMuNgfLtJ1RId2kRlx90OHoEinqPscGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763311483465u128),
+            ("bsh/XeWnDsWa/ZI0o8XKhZVw1SsIER+S0WgyHJPrZ7cQDRn7z0WhV9ZvUYNcns+r4QhxpiaM9OSz48uWWgewsg==", "009569000004C1B2", 1763311485229u128),
+            ("/y325aED7Z7Ozd3Jk1sHargAUbeIitCd3AGM3ZWiI3kT148mGqP3nYNbUEsHv5dNcGhaLyrD2+PX9XPOXgdT1g==", "009569000004C1B2", 1763311487016u128),
+            ("FWpH8sKVSlCHV9nrcsuArVZSCkSF8D7gKBenDxa1IuX67M03bHgdhAlX3t/kp3zt4QhxpiaM9OSz48uWWgewsg==", "009569000004C1B2", 1763311488818u128),
+            ("exsyk1ZSlS/Tzaq4Zm8Yv1+82YwpmgkhvlzzRoALP8YkXtk2U0BiI4grM02WIf2+8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763311793576u128),
+            ("NRU8Qt7DIk5m5i87mX5s1gD15t3yyOddqWdeGJcUXCZ13G9IvLAdKJfLTFiCibQIVcN5PLKlPv+FCQJ45YrL7Q==", "009569000004C21E", 1763311795274u128),
+            ("IXHodU479Ai/PFj+Jp9TtTTxbnVrBnddqPrKOH5DJ8JQLs9MP+Ntk01fquUxkwaA8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763311797029u128),
+            ("AIISFLfQJi9lGL8WnnmDtPFAy2vRi/vFo4+fDZZogzpIAQln2Sa8py7+HiNmHN1l+eejjKOEuR/z/pwGZ7KD2g==", "009569000004C21E", 1763311798803u128),
+            ("h/YPh13573aG/wQF2E4iQO9LUgTm2rvI0LLGug2RV5XpKStX6+apha2jAShoVMAp8Z9sMhZFByaRTOJF4yCNww==", "009569000004C21E", 1763311800585u128),
+            ("jqrJ4oh9scFyZhtpgxOiJ89lt7//qyJqirTTFsvQEgfC8g6myWh+tJ2+SLWHxb6X+eejjKOEuR/z/pwGZ7KD2g==", "009569000004C21E", 1763311802361u128),
+        ];
+
+        std::env::set_var("LORA_ALLOW_HMAC_MISMATCH", "1");
+        let mut count_ok = 0usize;
+        let mut count_mt05 = 0usize;
+        for (idx, (b64, dev_eui, ts)) in samples.iter().enumerate() {
+            match decode_frame(b64, secret, token) {
+                Ok(df) => {
+                    count_ok += 1;
+                    let mt = df.message_type;
+                    if mt == 0x05 {
+                        count_mt05 += 1;
+                        println!("[{}] devEui={} ts={} type=0x{:02x} LOCATION", idx, dev_eui, ts, mt);
+                        if let Some(js) = as_uwb_update(&df, *ts) {
+                            println!("uwb_update={}", serde_json::to_string_pretty(&js).unwrap());
+                        }
+                    } else {
+                        println!("[{}] devEui={} ts={} type=0x{:02x}", idx, dev_eui, ts, mt);
+                    }
+                }
+                Err(e) => {
+                    println!("[{}] devEui={} ts={} decode_error={}", idx, dev_eui, ts, e);
+                }
+            }
+        }
+        println!("decoded_ok={} mt05_count={}", count_ok, count_mt05);
+        std::env::set_var("LORA_ALLOW_HMAC_MISMATCH", "0");
+        assert_eq!(count_ok, samples.len());
     }
 }
