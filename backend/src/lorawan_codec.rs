@@ -20,6 +20,7 @@ use sha2::Sha256;
 use serde_json::{Value, json};
 use hex::FromHex;
 use base64::Engine; // bring trait in scope for encode/decode
+use tracing::{debug, info, warn, error};
 
 type HmacSha256 = Hmac<Sha256>;
 
@@ -34,11 +35,20 @@ pub fn checksum16(data: &[u8]) -> u16 {
 
 /// Remove PKCS7 padding from a mutable buffer.
 fn pkcs7_unpad(data: &mut Vec<u8>) -> Result<(), String> {
-    if data.is_empty() { return Err("empty data".into()); }
+    if data.is_empty() { 
+        debug!("pkcs7_unpad: empty data");
+        return Err("empty data".into()); 
+    }
     let pad = *data.last().unwrap() as usize;
-    if pad==0 || pad>16 || pad>data.len() { return Err("bad padding".into()); }
+    if pad==0 || pad>16 || pad>data.len() { 
+        debug!(pad, len = data.len(), "pkcs7_unpad: invalid pad value");
+        return Err("bad padding".into()); 
+    }
     let len = data.len();
-    if !data[len-pad..].iter().all(|&b| b as usize == pad) { return Err("bad padding bytes".into()); }
+    if !data[len-pad..].iter().all(|&b| b as usize == pad) { 
+        debug!(pad, len = data.len(), tail = %hex::encode(&data[len-std::cmp::min(pad, len)..]), "pkcs7_unpad: pad bytes mismatch");
+        return Err("bad padding bytes".into()); 
+    }
     data.truncate(len - pad);
     Ok(())
 }
@@ -72,11 +82,16 @@ fn aes_ecb_block_decrypt(key: &[u8;16], block: &mut [u8;16]) {
 
 /// Decrypt base64 ciphertext using hex key (AES-128-ECB + PKCS7). Returns plaintext bytes.
 fn aes_ecb_decrypt(key_hex: &str, b64: &str) -> Result<Vec<u8>, String> {
+    debug!(key_hex_len = key_hex.len(), b64_len = b64.len(), "aes_ecb_decrypt: starting");
     let key = <[u8;16]>::from_hex(key_hex).map_err(|e| format!("bad key hex: {e}"))?;
     let ct = base64::engine::general_purpose::STANDARD
         .decode(b64.as_bytes())
         .map_err(|e| format!("base64: {e}"))?;
-    if ct.len() % 16 != 0 { return Err("ct not multiple of block size".into()); }
+    debug!(ct_len = ct.len(), ct_first16 = %hex::encode(&ct.get(0..16).unwrap_or(&[])), "aes_ecb_decrypt: decoded base64");
+    if ct.len() % 16 != 0 { 
+        warn!(ct_len = ct.len(), "aes_ecb_decrypt: ciphertext not multiple of 16");
+        return Err("ct not multiple of block size".into()); 
+    }
     let mut out = vec![0u8; ct.len()];
     for (i, chunk) in ct.chunks(16).enumerate() {
         let mut block = [0u8;16];
@@ -84,7 +99,10 @@ fn aes_ecb_decrypt(key_hex: &str, b64: &str) -> Result<Vec<u8>, String> {
         aes_ecb_block_decrypt(&key, &mut block);
         out[i*16..(i+1)*16].copy_from_slice(&block);
     }
+    let pad_val = *out.last().unwrap_or(&0);
+    debug!(pt_len = out.len(), pt_first32 = %hex::encode(&out.get(0..32).unwrap_or(&[])), pad_val, "aes_ecb_decrypt: decrypted before unpad");
     pkcs7_unpad(&mut out)?;
+    debug!(pt_len = out.len(), pt_first32 = %hex::encode(&out.get(0..32).unwrap_or(&[])), "aes_ecb_decrypt: unpad ok");
     Ok(out)
 }
 
@@ -132,11 +150,13 @@ pub struct DecodedFrame {
 /// Decode an uplink frame (base64) with given AES key + sign token.
 /// Returns a `DecodedFrame` containing raw payload, message type and an explanatory JSON tree.
 pub fn decode_frame(b64: &str, secret_key_hex: &str, sign_token_hex: &str) -> Result<DecodedFrame, String> {
+    debug!(b64_len = b64.len(), key_hex_len = secret_key_hex.len(), sign_token_hex_len = sign_token_hex.len(), "decode_frame: begin");
     let plaintext = aes_ecb_decrypt(secret_key_hex, b64)?; // [HMAC(32) | payload]
     if plaintext.len() < 32+10 { return Err("plaintext too short".into()); }
     // Optional: verify HMAC signature matches first 32 bytes
     let sig = &plaintext[0..32];
     let payload = plaintext[32..].to_vec();
+    debug!(pt_total = plaintext.len(), payload_len = payload.len(), sig_prefix8 = %hex::encode(&sig[0..8]), "decode_frame: split plaintext");
     // Recompute HMAC over hex(payload)||timestamp when available. Since timestamp is not present
     // in uplink context here, we compute HMAC over just hex(payload) for a structural check.
     // If sign_token_hex is empty, skip verification.
@@ -145,10 +165,12 @@ pub fn decode_frame(b64: &str, secret_key_hex: &str, sign_token_hex: &str) -> Re
         if let Ok(mac) = hmac_sha256_hex(&payload_hex, sign_token_hex) {
             // Compare first 32 bytes. Without timestamp mixing, this is a weak check but helps catch corruption.
             if mac.len() >= 32 && sig != &mac[0..32] {
+                debug!(computed_prefix8 = %hex::encode(&mac[0..8]), sig_prefix8 = %hex::encode(&sig[0..8]), "decode_frame: hmac mismatch");
                 // Don't hard error — surface in message type for observability; callers may decide policy.
                 // Return error to let endpoint log/broadcast a decode_error event.
                 return Err("hmac_mismatch".into());
             }
+            debug!("decode_frame: hmac match (prefix)");
         }
     }
     if payload.len() < 11 { return Err("frame too short".into()); }
@@ -158,6 +180,7 @@ pub fn decode_frame(b64: &str, secret_key_hex: &str, sign_token_hex: &str) -> Re
     let msg_number = &payload[3..5];
     let ack_flag = &payload[5..6];
     let msg_type = payload[6];
+    debug!(msg_type = format!("0x{:02x}", msg_type), payload_total = payload.len(), "decode_frame: header parsed");
     let crc = &payload[payload.len()-4..payload.len()-2];
     let frame_end = &payload[payload.len()-2..];
     let data_content = &payload[7..payload.len()-4];
