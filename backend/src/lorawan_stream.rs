@@ -62,6 +62,11 @@ pub async fn post_uwb(req: HttpRequest, body: web::Json<Value>, tx: web::Data<Se
     let tk_masked = if log_keys_full { sign_token.clone() } else { format!("{}..{}", &sign_token[..4.min(sign_token.len())], &sign_token[sign_token.len().saturating_sub(4)..]) };
     info!(peer = %peer, data_b64_len = data_b64.len(), dev_eui = content.get("devEui").and_then(|v| v.as_str()).unwrap_or(""), f_port = content.get("fPort").and_then(|v| v.as_i64()).unwrap_or(-1), sk = %sk_masked, tk = %tk_masked, full_keys = log_keys_full, "POST /v1/uwb received");
 
+    // Always log the raw body and base64 (preview) for visibility during vendor debugging
+    let raw_json_str = raw_body.to_string();
+    let b64_preview = if data_b64.len() > 64 { &data_b64[0..64] } else { data_b64 };
+    info!(raw_json_len = raw_json_str.len(), raw_json = %raw_json_str, data_b64_preview = %b64_preview, data_b64_len = data_b64.len(), "uwb request body");
+
     if log_raw {
         let raw_json = raw_body.to_string();
         // Log full raw JSON body and the base64 payload to enable offline replay.
@@ -128,7 +133,9 @@ pub async fn post_uwb(req: HttpRequest, body: web::Json<Value>, tx: web::Data<Se
         }
     }
     histogram!("uwb.ingest.latency_ms").record(req_start.elapsed().as_secs_f64()*1000.0);
-    Ok(HttpResponse::Ok().json(json!({"ok": true, "downlink": downlink_response })))
+    let resp_json = json!({"ok": true, "downlink": downlink_response });
+    info!(response = %resp_json, "POST /v1/uwb response");
+    Ok(HttpResponse::Ok().json(resp_json))
 }
 
 /// Local SSE stream of decoded location updates plus occasional comment heartbeats.

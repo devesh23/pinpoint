@@ -80,6 +80,57 @@ fn aes_ecb_block_decrypt(key: &[u8;16], block: &mut [u8;16]) {
     block.copy_from_slice(&ba);
 }
 
+/// Decrypt ciphertext using AES-128-CBC. Supports two IV modes:
+/// - "prefix": first 16 bytes of ciphertext are the IV, remaining bytes are the actual ciphertext
+/// - "zero": IV is 16 zero bytes, entire ciphertext is treated as CBC blocks
+/// If `do_unpad` is true, PKCS7 unpadding is applied to the result.
+fn aes_cbc_decrypt(key_hex: &str, b64: &str, iv_mode: &str, do_unpad: bool) -> Result<Vec<u8>, String> {
+    debug!(key_hex_len = key_hex.len(), b64_len = b64.len(), iv_mode, do_unpad, "aes_cbc_decrypt: starting");
+    let key = <[u8;16]>::from_hex(key_hex).map_err(|e| format!("bad key hex: {e}"))?;
+    let ct_all = base64::engine::general_purpose::STANDARD
+        .decode(b64.as_bytes())
+        .map_err(|e| format!("base64: {e}"))?;
+    if ct_all.len() < 16 { return Err("ct too short".into()); }
+    let (iv, ct) = match iv_mode {
+        "prefix" => {
+            if ct_all.len() < 32 { return Err("ct too short for prefix iv".into()); }
+            let mut iv = [0u8;16];
+            iv.copy_from_slice(&ct_all[0..16]);
+            (iv, ct_all[16..].to_vec())
+        },
+        "zero" => {
+            let iv = [0u8;16];
+            (iv, ct_all)
+        },
+        other => { return Err(format!("unknown iv_mode: {}", other)); }
+    };
+    debug!(ct_len = ct.len(), iv_first8 = %hex::encode(&iv[0..8.min(iv.len())]), "aes_cbc_decrypt: ct prepared");
+    if ct.len() % 16 != 0 { return Err("ct not multiple of block size".into()); }
+    let mut out = vec![0u8; ct.len()];
+    let mut prev = iv;
+    for (i, chunk) in ct.chunks(16).enumerate() {
+        let mut block = [0u8;16];
+        block.copy_from_slice(chunk);
+        aes_ecb_block_decrypt(&key, &mut block);
+        for j in 0..16 { block[j] ^= prev[j]; }
+        out[i*16..(i+1)*16].copy_from_slice(&block);
+        // CBC decrypt uses previous ciphertext block as next prev
+        let mut new_prev = [0u8;16];
+        new_prev.copy_from_slice(chunk);
+        prev = new_prev;
+    }
+    let pad_val = *out.last().unwrap_or(&0);
+    debug!(pt_len = out.len(), pt_first32 = %hex::encode(&out.get(0..32).unwrap_or(&[])), pad_val, do_unpad, "aes_cbc_decrypt: decrypted before unpad");
+    if do_unpad {
+        let mut tmp = out;
+        pkcs7_unpad(&mut tmp)?;
+        debug!(pt_len = tmp.len(), pt_first32 = %hex::encode(&tmp.get(0..32).unwrap_or(&[])), "aes_cbc_decrypt: unpad ok");
+        Ok(tmp)
+    } else {
+        Ok(out)
+    }
+}
+
 /// Decrypt base64 ciphertext using hex key (AES-128-ECB + PKCS7). Returns plaintext bytes.
 fn aes_ecb_decrypt(key_hex: &str, b64: &str) -> Result<Vec<u8>, String> {
     debug!(key_hex_len = key_hex.len(), b64_len = b64.len(), "aes_ecb_decrypt: starting");
@@ -176,145 +227,201 @@ pub struct DecodedFrame {
 pub fn decode_frame(b64: &str, secret_key_hex: &str, sign_token_hex: &str) -> Result<DecodedFrame, String> {
     debug!(b64_len = b64.len(), key_hex_len = secret_key_hex.len(), sign_token_hex_len = sign_token_hex.len(), "decode_frame: begin");
     let allow_fallback = std::env::var("LORA_DECODE_FALLBACK").ok().map(|s| s=="1" || s.eq_ignore_ascii_case("true")).unwrap_or(false);
-    // Primary attempt: ECB + PKCS7
-    let plaintext = match aes_ecb_decrypt(secret_key_hex, b64) {
-        Ok(pt) => { debug!(mode = "ecb-pkcs7", "decode_frame: primary decrypt ok"); pt },
+    let try_cbc = std::env::var("LORA_TRY_CBC").ok().map(|s| s=="1" || s.eq_ignore_ascii_case("true")).unwrap_or(false);
+    let allow_hmac_mismatch = std::env::var("LORA_ALLOW_HMAC_MISMATCH").ok().map(|s| s=="1" || s.eq_ignore_ascii_case("true")).unwrap_or(false);
+
+    // Helper to parse a payload buffer into DecodedFrame (reusing existing logic)
+    fn parse_payload_into_df(payload: Vec<u8>, require_valid_msg: bool) -> Result<DecodedFrame, String> {
+        if payload.len() < 11 { return Err("frame too short".into()); }
+        let frame_header = &payload[0..2];
+        let equip = &payload[2..3];
+        let msg_number = &payload[3..5];
+        let ack_flag = &payload[5..6];
+        let msg_type = payload[6];
+        if require_valid_msg {
+            let valid_msg = matches!(msg_type, 0x01 | 0x03 | 0x05);
+            if !valid_msg { return Err(format!("msg_type_invalid: 0x{:02x}", msg_type)); }
+        }
+        debug!(msg_type = format!("0x{:02x}", msg_type), payload_total = payload.len(), "decode_frame: header parsed");
+        if payload.len() < 4 { return Err("frame too short".into()); }
+        let crc = &payload[payload.len()-4..payload.len()-2];
+        let frame_end = &payload[payload.len()-2..];
+        let data_content = &payload[7..payload.len()-4];
+
+        let mut buffer_obj = json!({
+            "Full Buffer": base64::engine::general_purpose::STANDARD.encode(&payload),
+            "Frame Header": hex::encode(frame_header),
+            "Equipment cluster coding": hex::encode(equip),
+            "Message Number": hex::encode(msg_number),
+            "ACK Flag": hex::encode(ack_flag),
+            "Message Type": format!("{:02x}", msg_type),
+            "CRC Check": hex::encode(crc),
+            "Frame End": hex::encode(frame_end)
+        });
+
+        match msg_type {
+            0x01 => {
+                if data_content.len() < 10 { return Err("mt01 content too short".into()); }
+                let obj = json!({
+                    "Full Byte": hex::encode(data_content),
+                    "Device ID": hex::encode(&data_content[0..4]),
+                    "Device version and type": hex::encode(&data_content[4..6]),
+                    "Position the shortest transmission period": hex::encode(&data_content[6..7]),
+                    "Sports assistance function swtich": hex::encode(&data_content[7..8]),
+                    "Beacon search timeout": hex::encode(&data_content[8..9]),
+                    "Beacon search quantity": hex::encode(&data_content[9..10])
+                });
+                buffer_obj["Data Content"] = obj;
+            },
+            0x05 => {
+                if data_content.len() < 13 { return Err("mt05 content too short".into()); }
+                let obj = json!({
+                    "Full Byte": hex::encode(data_content),
+                    "Device ID": hex::encode(&data_content[0..4]),
+                    "Number of Beacons": hex::encode(&data_content[4..5]),
+                    "Physical Activity Flag": hex::encode(&data_content[5..6]),
+                    "Major": hex::encode(&data_content[6..8]),
+                    "Minor": hex::encode(&data_content[8..10]),
+                    "Distance": hex::encode(&data_content[10..12]),
+                    "Battery Level": hex::encode(&data_content[12..13]),
+                    "Remaining Beacon Info": hex::encode(&data_content[13..])
+                });
+                buffer_obj["Data Content"] = obj;
+            },
+            0x03 => {
+                if data_content.len() < 9 { return Err("mt03 content too short".into()); }
+                let obj = json!({
+                    "Full Byte": hex::encode(data_content),
+                    "UID of RFID": hex::encode(&data_content[0..4]),
+                    "Device Abnormal": hex::encode(&data_content[4..5]),
+                    "Battery Level": hex::encode(&data_content[5..6]),
+                    "Configuration File Version": hex::encode(&data_content[6..7]),
+                    "Reservation": hex::encode(&data_content[7..9])
+                });
+                buffer_obj["Data Content"] = obj;
+            },
+            _ => {
+                buffer_obj["Data Content"] = Value::String(hex::encode(data_content));
+            }
+        }
+
+        let new_buffer_response = if msg_type == 0x01 {
+            if let Some(dc) = buffer_obj.get("Data Content").and_then(|v| v.get("Full Byte")).and_then(|v| v.as_str()) {
+                let dc_bytes = Vec::from_hex(dc).unwrap_or_default();
+                if dc_bytes.len() >= 10 {
+                    let mut out = Vec::new();
+                    out.extend_from_slice(&dc_bytes[0..4]);
+                    out.push(0x01);
+                    out.extend_from_slice(&dc_bytes[4..6]);
+                    out.push(0x00);
+                    out.push(0x01);
+                    out.push(0x01);
+                    out.push(0x00);
+                    out.push(0x00);
+                    Some(out)
+                } else { None }
+            } else { None }
+        } else { None };
+
+        Ok(DecodedFrame { raw_payload: payload, message_type: msg_type, buffer_explained: buffer_obj, new_buffer_response })
+    }
+
+    // Build plaintext candidates across modes
+    let mut candidates: Vec<(&'static str, Vec<u8>)> = Vec::new();
+    match aes_ecb_decrypt(secret_key_hex, b64) {
+        Ok(pt) => { debug!(mode = "ecb-pkcs7", "decode_frame: primary decrypt ok"); candidates.push(("ecb-pkcs7", pt)); },
         Err(e) => {
             warn!(error = %e, fallback = allow_fallback, "decode_frame: primary decrypt failed");
             if allow_fallback {
-                match aes_ecb_decrypt_no_unpad(secret_key_hex, b64) {
-                    Ok(pt2) => { debug!(mode = "ecb-raw", "decode_frame: fallback decrypt ok"); pt2 },
-                    Err(e2) => { return Err(e2); }
+                if let Ok(pt2) = aes_ecb_decrypt_no_unpad(secret_key_hex, b64) {
+                    debug!(mode = "ecb-raw", "decode_frame: fallback decrypt ok");
+                    candidates.push(("ecb-raw", pt2));
                 }
-            } else {
-                return Err(e);
-            }
-        }
-    }; // [HMAC(32) | payload]
-    if plaintext.len() < 32+10 { return Err("plaintext too short".into()); }
-    // Optional: verify HMAC signature matches first 32 bytes
-    let sig = &plaintext[0..32];
-    let payload = plaintext[32..].to_vec();
-    debug!(pt_total = plaintext.len(), payload_len = payload.len(), sig_prefix8 = %hex::encode(&sig[0..8]), "decode_frame: split plaintext");
-    // Recompute HMAC over hex(payload)||timestamp when available. Since timestamp is not present
-    // in uplink context here, we compute HMAC over just hex(payload) for a structural check.
-    // If sign_token_hex is empty, skip verification.
-    if !sign_token_hex.is_empty() {
-        let payload_hex = hex::encode(&payload);
-        if let Ok(mac) = hmac_sha256_hex(&payload_hex, sign_token_hex) {
-            // Compare first 32 bytes. Without timestamp mixing, this is a weak check but helps catch corruption.
-            if mac.len() >= 32 && sig != &mac[0..32] {
-                debug!(computed_prefix8 = %hex::encode(&mac[0..8]), sig_prefix8 = %hex::encode(&sig[0..8]), "decode_frame: hmac mismatch");
-                let allow_hmac = std::env::var("LORA_ALLOW_HMAC_MISMATCH").ok().map(|s| s=="1" || s.eq_ignore_ascii_case("true")).unwrap_or(false);
-                if !allow_hmac {
-                    return Err("hmac_mismatch".into());
-                } else {
-                    warn!("decode_frame: continuing despite hmac mismatch due to LORA_ALLOW_HMAC_MISMATCH");
-                }
-            } else {
-                debug!("decode_frame: hmac match (prefix)");
             }
         }
     }
-    if payload.len() < 11 { return Err("frame too short".into()); }
-    // Parse fixed header
-    let frame_header = &payload[0..2];
-    let equip = &payload[2..3];
-    let msg_number = &payload[3..5];
-    let ack_flag = &payload[5..6];
-    let msg_type = payload[6];
-    // In fallback mode, ensure we only accept known message types to filter bogus decrypts.
-    let allow_fallback = std::env::var("LORA_DECODE_FALLBACK").ok().map(|s| s=="1" || s.eq_ignore_ascii_case("true")).unwrap_or(false);
-    if allow_fallback {
-        let valid_msg = matches!(msg_type, 0x01 | 0x03 | 0x05);
-        if !valid_msg {
-            return Err(format!("msg_type_invalid: 0x{:02x}", msg_type));
-        }
-    }
-    debug!(msg_type = format!("0x{:02x}", msg_type), payload_total = payload.len(), "decode_frame: header parsed");
-    let crc = &payload[payload.len()-4..payload.len()-2];
-    let frame_end = &payload[payload.len()-2..];
-    let data_content = &payload[7..payload.len()-4];
-
-    let mut buffer_obj = json!({
-        "Full Buffer": base64::engine::general_purpose::STANDARD.encode(&payload),
-        "Frame Header": hex::encode(frame_header),
-        "Equipment cluster coding": hex::encode(equip),
-        "Message Number": hex::encode(msg_number),
-        "ACK Flag": hex::encode(ack_flag),
-        "Message Type": format!("{:02x}", msg_type),
-        "CRC Check": hex::encode(crc),
-        "Frame End": hex::encode(frame_end)
-    });
-
-    // Expand data content depending on message type
-    match msg_type {
-        0x01 => {
-            if data_content.len() < 10 { return Err("mt01 content too short".into()); }
-            let obj = json!({
-                "Full Byte": hex::encode(data_content),
-                "Device ID": hex::encode(&data_content[0..4]),
-                "Device version and type": hex::encode(&data_content[4..6]),
-                "Position the shortest transmission period": hex::encode(&data_content[6..7]),
-                "Sports assistance function swtich": hex::encode(&data_content[7..8]),
-                "Beacon search timeout": hex::encode(&data_content[8..9]),
-                "Beacon search quantity": hex::encode(&data_content[9..10])
-            });
-            buffer_obj["Data Content"] = obj;
-        },
-        0x05 => {
-            if data_content.len() < 13 { return Err("mt05 content too short".into()); }
-            let obj = json!({
-                "Full Byte": hex::encode(data_content),
-                "Device ID": hex::encode(&data_content[0..4]),
-                "Number of Beacons": hex::encode(&data_content[4..5]),
-                "Physical Activity Flag": hex::encode(&data_content[5..6]),
-                "Major": hex::encode(&data_content[6..8]),
-                "Minor": hex::encode(&data_content[8..10]),
-                "Distance": hex::encode(&data_content[10..12]),
-                "Battery Level": hex::encode(&data_content[12..13]),
-                "Remaining Beacon Info": hex::encode(&data_content[13..])
-            });
-            buffer_obj["Data Content"] = obj;
-        },
-        0x03 => {
-            if data_content.len() < 9 { return Err("mt03 content too short".into()); }
-            let obj = json!({
-                "Full Byte": hex::encode(data_content),
-                "UID of RFID": hex::encode(&data_content[0..4]),
-                "Device Abnormal": hex::encode(&data_content[4..5]),
-                "Battery Level": hex::encode(&data_content[5..6]),
-                "Configuration File Version": hex::encode(&data_content[6..7]),
-                "Reservation": hex::encode(&data_content[7..9])
-            });
-            buffer_obj["Data Content"] = obj;
-        },
-        _ => {
-            buffer_obj["Data Content"] = Value::String(hex::encode(data_content));
-        }
+    if try_cbc {
+        if let Ok(pt) = aes_cbc_decrypt(secret_key_hex, b64, "prefix", true) { candidates.push(("cbc-pkcs7:prefix", pt)); }
+        if let Ok(pt) = aes_cbc_decrypt(secret_key_hex, b64, "zero", true) { candidates.push(("cbc-pkcs7:zero", pt)); }
+        if let Ok(pt) = aes_cbc_decrypt(secret_key_hex, b64, "prefix", false) { candidates.push(("cbc-raw:prefix", pt)); }
+        if let Ok(pt) = aes_cbc_decrypt(secret_key_hex, b64, "zero", false) { candidates.push(("cbc-raw:zero", pt)); }
     }
 
-    // Build new_buffer_response for 0x01 messages
-    let new_buffer_response = if msg_type == 0x01 {
-        // Device ID (0..4) | 0x01 | Device version/type (4..6) | 0x00 | 0x01 | 0x01 | 0x00 | 0x00
-        if let Some(dc) = buffer_obj.get("Data Content").and_then(|v| v.get("Full Byte")).and_then(|v| v.as_str()) {
-            let dc_bytes = Vec::from_hex(dc).unwrap_or_default();
-            if dc_bytes.len() >= 10 {
-                let mut out = Vec::new();
-                out.extend_from_slice(&dc_bytes[0..4]);
-                out.push(0x01);
-                out.extend_from_slice(&dc_bytes[4..6]);
-                out.push(0x00);
-                out.push(0x01);
-                out.push(0x01);
-                out.push(0x00);
-                out.push(0x00);
-                Some(out)
-            } else { None }
-        } else { None }
-    } else { None };
+    if candidates.is_empty() { return Err("no decrypt candidates".into()); }
 
-    Ok(DecodedFrame { raw_payload: payload, message_type: msg_type, buffer_explained: buffer_obj, new_buffer_response })
+    // Try signature layouts for each plaintext candidate
+    // Layouts: (name, sig_len, sig_first)
+    let layouts: [(&str, usize, bool); 4] = [
+        ("sig32_first", 32, true),
+        ("sig32_last", 32, false),
+        ("sig16_first", 16, true),
+        ("sig16_last", 16, false),
+    ];
+
+    // Evaluate candidates and pick the best per HMAC + message type validity
+    let mut best_df: Option<DecodedFrame> = None;
+    let mut best_score = -1i32; // 2 = hmac match + valid msg, 1 = valid msg (if mismatch allowed), 0 = parse ok but unknown msg
+    for (mode, pt) in candidates.into_iter() {
+        debug!(mode, pt_len = pt.len(), pt_first16 = %hex::encode(&pt.get(0..16).unwrap_or(&[])), "decode_frame: trying mode");
+        for (layout_name, sig_len, sig_first) in layouts.iter() {
+            if pt.len() < sig_len + 11 { continue; }
+            let (sig, payload) = if *sig_first {
+                (&pt[0..*sig_len], pt[*sig_len..].to_vec())
+            } else {
+                (&pt[pt.len()-*sig_len..], pt[0..pt.len()-*sig_len].to_vec())
+            };
+            debug!(mode, layout = *layout_name, payload_len = payload.len(), sig_len = *sig_len, sig_prefix8 = %hex::encode(&sig[0..sig.len().min(8)]), "decode_frame: split plaintext");
+
+            // Compute HMAC over hex(payload).
+            let mut hmac_ok = false;
+            if !sign_token_hex.is_empty() {
+                if let Ok(mac) = hmac_sha256_hex(&hex::encode(&payload), sign_token_hex) {
+                    if *sig_len == 32 {
+                        hmac_ok = mac.len() >= 32 && &mac[0..32] == sig;
+                    } else { // 16
+                        hmac_ok = mac.len() >= 16 && &mac[0..16] == sig;
+                    }
+                    if !hmac_ok {
+                        debug!(mode, layout = *layout_name, computed_prefix8 = %hex::encode(&mac[0..8]), sig_prefix8 = %hex::encode(&sig[0..sig.len().min(8)]), "decode_frame: hmac mismatch");
+                    } else {
+                        debug!(mode, layout = *layout_name, "decode_frame: hmac match");
+                    }
+                }
+            }
+
+            // In fallback/deep mode, require known message type to filter bogus decrypts
+            let require_valid_msg = allow_fallback || try_cbc;
+            match parse_payload_into_df(payload.clone(), require_valid_msg) {
+                Ok(df) => {
+                    let valid_msg = matches!(df.message_type, 0x01 | 0x03 | 0x05);
+                    let mut score = 0;
+                    if hmac_ok && valid_msg { score = 2; }
+                    else if valid_msg && allow_hmac_mismatch { score = 1; }
+                    else if hmac_ok { score = 1; } // accept if HMAC ok even if msg type not in set
+                    // else score remains 0
+                    if score > best_score {
+                        debug!(mode, layout = *layout_name, score, msg_type = format!("0x{:02x}", df.message_type), "decode_frame: candidate selected");
+                        best_score = score;
+                        best_df = Some(df);
+                        if score == 2 { break; } // best possible for this mode/layout
+                    }
+                },
+                Err(e) => {
+                    debug!(mode, layout = *layout_name, error = %e, "decode_frame: parse failed");
+                }
+            }
+        }
+        if best_score == 2 { break; }
+    }
+
+    match best_df {
+        Some(df) => {
+            if best_score >= 1 { Ok(df) }
+            else if allow_hmac_mismatch { Ok(df) }
+            else { Err("hmac_mismatch".into()) }
+        }
+        None => Err("no valid decode candidates".into())
+    }
 }
 
 /// Construct downlink registration response (for message type 0x01) replicating Node logic.
