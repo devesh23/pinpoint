@@ -308,3 +308,6 @@ If you'd like, I can also:
 
 Tell me which of the follow-ups you'd like me to apply next and I will implement them.
 
+
+
+BACKEND_PORT=8084 FRONTEND_PORT=5176 RUST_LOG=debug LOG_KEYS_FULL=1 LORA_SECRET_KEY='A60C3263B832E551EEBDDDB93D8B05EA' LORA_SIGN_TOKEN='3E3D4BEE7FE182D8' docker compose up -d --build

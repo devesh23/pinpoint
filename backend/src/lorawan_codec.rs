@@ -106,6 +106,30 @@ fn aes_ecb_decrypt(key_hex: &str, b64: &str) -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
+/// Decrypt base64 ciphertext using hex key (AES-128-ECB) without PKCS7 unpadding.
+/// Used as a fallback when devices do not apply padding and plaintext is already a multiple of 16 bytes.
+fn aes_ecb_decrypt_no_unpad(key_hex: &str, b64: &str) -> Result<Vec<u8>, String> {
+    debug!(key_hex_len = key_hex.len(), b64_len = b64.len(), "aes_ecb_decrypt_no_unpad: starting");
+    let key = <[u8;16]>::from_hex(key_hex).map_err(|e| format!("bad key hex: {e}"))?;
+    let ct = base64::engine::general_purpose::STANDARD
+        .decode(b64.as_bytes())
+        .map_err(|e| format!("base64: {e}"))?;
+    debug!(ct_len = ct.len(), ct_first16 = %hex::encode(&ct.get(0..16).unwrap_or(&[])), "aes_ecb_decrypt_no_unpad: decoded base64");
+    if ct.len() % 16 != 0 {
+        warn!(ct_len = ct.len(), "aes_ecb_decrypt_no_unpad: ciphertext not multiple of 16");
+        return Err("ct not multiple of block size".into());
+    }
+    let mut out = vec![0u8; ct.len()];
+    for (i, chunk) in ct.chunks(16).enumerate() {
+        let mut block = [0u8;16];
+        block.copy_from_slice(chunk);
+        aes_ecb_block_decrypt(&key, &mut block);
+        out[i*16..(i+1)*16].copy_from_slice(&block);
+    }
+    debug!(pt_len = out.len(), pt_first32 = %hex::encode(&out.get(0..32).unwrap_or(&[])), "aes_ecb_decrypt_no_unpad: done");
+    Ok(out)
+}
+
 /// Encrypt plaintext bytes using hex key (AES-128-ECB + PKCS7) -> base64 ciphertext.
 fn aes_ecb_encrypt(key_hex: &str, pt: &[u8]) -> Result<String, String> {
     let key = <[u8;16]>::from_hex(key_hex).map_err(|e| format!("bad key hex: {e}"))?;
@@ -151,7 +175,22 @@ pub struct DecodedFrame {
 /// Returns a `DecodedFrame` containing raw payload, message type and an explanatory JSON tree.
 pub fn decode_frame(b64: &str, secret_key_hex: &str, sign_token_hex: &str) -> Result<DecodedFrame, String> {
     debug!(b64_len = b64.len(), key_hex_len = secret_key_hex.len(), sign_token_hex_len = sign_token_hex.len(), "decode_frame: begin");
-    let plaintext = aes_ecb_decrypt(secret_key_hex, b64)?; // [HMAC(32) | payload]
+    let allow_fallback = std::env::var("LORA_DECODE_FALLBACK").ok().map(|s| s=="1" || s.eq_ignore_ascii_case("true")).unwrap_or(false);
+    // Primary attempt: ECB + PKCS7
+    let plaintext = match aes_ecb_decrypt(secret_key_hex, b64) {
+        Ok(pt) => { debug!(mode = "ecb-pkcs7", "decode_frame: primary decrypt ok"); pt },
+        Err(e) => {
+            warn!(error = %e, fallback = allow_fallback, "decode_frame: primary decrypt failed");
+            if allow_fallback {
+                match aes_ecb_decrypt_no_unpad(secret_key_hex, b64) {
+                    Ok(pt2) => { debug!(mode = "ecb-raw", "decode_frame: fallback decrypt ok"); pt2 },
+                    Err(e2) => { return Err(e2); }
+                }
+            } else {
+                return Err(e);
+            }
+        }
+    }; // [HMAC(32) | payload]
     if plaintext.len() < 32+10 { return Err("plaintext too short".into()); }
     // Optional: verify HMAC signature matches first 32 bytes
     let sig = &plaintext[0..32];
@@ -166,11 +205,15 @@ pub fn decode_frame(b64: &str, secret_key_hex: &str, sign_token_hex: &str) -> Re
             // Compare first 32 bytes. Without timestamp mixing, this is a weak check but helps catch corruption.
             if mac.len() >= 32 && sig != &mac[0..32] {
                 debug!(computed_prefix8 = %hex::encode(&mac[0..8]), sig_prefix8 = %hex::encode(&sig[0..8]), "decode_frame: hmac mismatch");
-                // Don't hard error — surface in message type for observability; callers may decide policy.
-                // Return error to let endpoint log/broadcast a decode_error event.
-                return Err("hmac_mismatch".into());
+                let allow_hmac = std::env::var("LORA_ALLOW_HMAC_MISMATCH").ok().map(|s| s=="1" || s.eq_ignore_ascii_case("true")).unwrap_or(false);
+                if !allow_hmac {
+                    return Err("hmac_mismatch".into());
+                } else {
+                    warn!("decode_frame: continuing despite hmac mismatch due to LORA_ALLOW_HMAC_MISMATCH");
+                }
+            } else {
+                debug!("decode_frame: hmac match (prefix)");
             }
-            debug!("decode_frame: hmac match (prefix)");
         }
     }
     if payload.len() < 11 { return Err("frame too short".into()); }
@@ -180,6 +223,14 @@ pub fn decode_frame(b64: &str, secret_key_hex: &str, sign_token_hex: &str) -> Re
     let msg_number = &payload[3..5];
     let ack_flag = &payload[5..6];
     let msg_type = payload[6];
+    // In fallback mode, ensure we only accept known message types to filter bogus decrypts.
+    let allow_fallback = std::env::var("LORA_DECODE_FALLBACK").ok().map(|s| s=="1" || s.eq_ignore_ascii_case("true")).unwrap_or(false);
+    if allow_fallback {
+        let valid_msg = matches!(msg_type, 0x01 | 0x03 | 0x05);
+        if !valid_msg {
+            return Err(format!("msg_type_invalid: 0x{:02x}", msg_type));
+        }
+    }
     debug!(msg_type = format!("0x{:02x}", msg_type), payload_total = payload.len(), "decode_frame: header parsed");
     let crc = &payload[payload.len()-4..payload.len()-2];
     let frame_end = &payload[payload.len()-2..];

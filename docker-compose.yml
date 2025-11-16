@@ -13,6 +13,10 @@ services:
       - LORA_SIGN_TOKEN=${LORA_SIGN_TOKEN}
       # When set to 1/true, logs full keys (not masked). Use only during controlled debug windows.
       - LOG_KEYS_FULL=${LOG_KEYS_FULL:-0}
+  # Enable ECB-without-unpad fallback to capture frames when devices don't pad
+  - LORA_DECODE_FALLBACK=${LORA_DECODE_FALLBACK:-0}
+  # Continue parsing even if HMAC doesn't match (debug only)
+  - LORA_ALLOW_HMAC_MISMATCH=${LORA_ALLOW_HMAC_MISMATCH:-0}
   # Pass the frontend host port into the container so the server
   # can construct the correct allowed CORS origin for the demo frontend.
   # Do NOT pass BACKEND_PORT here – the server should bind to the

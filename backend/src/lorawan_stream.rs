@@ -46,11 +46,13 @@ pub async fn post_uwb(req: HttpRequest, body: web::Json<Value>, tx: web::Data<Se
     let req_start = std::time::Instant::now();
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
     // Expect { content: { data: <base64>, devEui, fPort, timestamp? } } similar to server.ts
-    let content = body.get("content").cloned().unwrap_or(Value::Null);
+    let raw_body = body.into_inner();
+    let content = raw_body.get("content").cloned().unwrap_or(Value::Null);
     let data_b64 = content.get("data").and_then(|v| v.as_str()).unwrap_or("");
     let secret_key = env::var("LORA_SECRET_KEY").unwrap_or_else(|_| "A60C3263B832E551EEBDDDB93D8B05EA".to_string());
     let sign_token = env::var("LORA_SIGN_TOKEN").unwrap_or_else(|_| "3E3D4BEE7FE182D8".to_string());
     let log_keys_full = env::var("LOG_KEYS_FULL").ok().map(|s| s=="1" || s.to_lowercase()=="true").unwrap_or(false);
+    let log_raw = env::var("LORA_LOG_RAW").ok().map(|s| s=="1" || s.eq_ignore_ascii_case("true")).unwrap_or(false);
     let peer = req
         .connection_info()
         .peer_addr()
@@ -59,6 +61,12 @@ pub async fn post_uwb(req: HttpRequest, body: web::Json<Value>, tx: web::Data<Se
     let sk_masked = if log_keys_full { secret_key.clone() } else { format!("{}..{}", &secret_key[..4.min(secret_key.len())], &secret_key[secret_key.len().saturating_sub(4)..]) };
     let tk_masked = if log_keys_full { sign_token.clone() } else { format!("{}..{}", &sign_token[..4.min(sign_token.len())], &sign_token[sign_token.len().saturating_sub(4)..]) };
     info!(peer = %peer, data_b64_len = data_b64.len(), dev_eui = content.get("devEui").and_then(|v| v.as_str()).unwrap_or(""), f_port = content.get("fPort").and_then(|v| v.as_i64()).unwrap_or(-1), sk = %sk_masked, tk = %tk_masked, full_keys = log_keys_full, "POST /v1/uwb received");
+
+    if log_raw {
+        let raw_json = raw_body.to_string();
+        // Log full raw JSON body and the base64 payload to enable offline replay.
+        info!(raw_json_len = raw_json.len(), raw_json = %raw_json, data_b64 = data_b64, "lorawan raw body");
+    }
     let mut downlink_response: Option<Value> = None; // JSON detail about constructed/sent downlink
     if !data_b64.is_empty() {
         match decode_frame(data_b64, &secret_key, &sign_token) {
