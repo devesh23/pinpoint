@@ -49,8 +49,20 @@ pub async fn post_uwb(req: HttpRequest, body: web::Json<Value>, tx: web::Data<Se
     let raw_body = body.into_inner();
     let content = raw_body.get("content").cloned().unwrap_or(Value::Null);
     let data_b64 = content.get("data").and_then(|v| v.as_str()).unwrap_or("");
-    let secret_key = env::var("LORA_SECRET_KEY").unwrap_or_else(|_| "A60C3263B832E551EEBDDDB93D8B05EA".to_string());
-    let sign_token = env::var("LORA_SIGN_TOKEN").unwrap_or_else(|_| "3E3D4BEE7FE182D8".to_string());
+    // Uplink (decode) keys: prefer explicit uplink vars, then legacy names, with Node defaults last
+    let uplink_secret = env::var("LORA_UPLINK_SECRET_KEY")
+        .or_else(|_| env::var("LORA_SECRET_KEY"))
+        .unwrap_or_else(|_| "3BA16CA4D2BE9EB96147779B32182750".to_string());
+    let uplink_token = env::var("LORA_UPLINK_SIGN_TOKEN")
+        .or_else(|_| env::var("LORA_SIGN_TOKEN"))
+        .unwrap_or_else(|_| "7AE4AF8AAD3BD554".to_string());
+    // Downlink (encrypt) keys: prefer explicit downlink vars, then legacy names, with Node defaults last
+    let downlink_secret = env::var("LORA_DOWNLINK_SECRET_KEY")
+        .or_else(|_| env::var("LORA_SECRET_KEY"))
+        .unwrap_or_else(|_| "A60C3263B832E551EEBDDDB93D8B05EA".to_string());
+    let downlink_token = env::var("LORA_DOWNLINK_SIGN_TOKEN")
+        .or_else(|_| env::var("LORA_SIGN_TOKEN"))
+        .unwrap_or_else(|_| "3E3D4BEE7FE182D8".to_string());
     let log_keys_full = env::var("LOG_KEYS_FULL").ok().map(|s| s=="1" || s.to_lowercase()=="true").unwrap_or(false);
     let log_raw = env::var("LORA_LOG_RAW").ok().map(|s| s=="1" || s.eq_ignore_ascii_case("true")).unwrap_or(false);
     let peer = req
@@ -58,9 +70,11 @@ pub async fn post_uwb(req: HttpRequest, body: web::Json<Value>, tx: web::Data<Se
         .peer_addr()
         .map(|s| s.to_string())
         .unwrap_or_else(|| "unknown".to_string());
-    let sk_masked = if log_keys_full { secret_key.clone() } else { format!("{}..{}", &secret_key[..4.min(secret_key.len())], &secret_key[secret_key.len().saturating_sub(4)..]) };
-    let tk_masked = if log_keys_full { sign_token.clone() } else { format!("{}..{}", &sign_token[..4.min(sign_token.len())], &sign_token[sign_token.len().saturating_sub(4)..]) };
-    info!(peer = %peer, data_b64_len = data_b64.len(), dev_eui = content.get("devEui").and_then(|v| v.as_str()).unwrap_or(""), f_port = content.get("fPort").and_then(|v| v.as_i64()).unwrap_or(-1), sk = %sk_masked, tk = %tk_masked, full_keys = log_keys_full, "POST /v1/uwb received");
+    let upl_sk_masked = if log_keys_full { uplink_secret.clone() } else { format!("{}..{}", &uplink_secret[..4.min(uplink_secret.len())], &uplink_secret[uplink_secret.len().saturating_sub(4)..]) };
+    let upl_tk_masked = if log_keys_full { uplink_token.clone() } else { format!("{}..{}", &uplink_token[..4.min(uplink_token.len())], &uplink_token[uplink_token.len().saturating_sub(4)..]) };
+    let dnl_sk_masked = if log_keys_full { downlink_secret.clone() } else { format!("{}..{}", &downlink_secret[..4.min(downlink_secret.len())], &downlink_secret[downlink_secret.len().saturating_sub(4)..]) };
+    let dnl_tk_masked = if log_keys_full { downlink_token.clone() } else { format!("{}..{}", &downlink_token[..4.min(downlink_token.len())], &downlink_token[downlink_token.len().saturating_sub(4)..]) };
+    info!(peer = %peer, data_b64_len = data_b64.len(), dev_eui = content.get("devEui").and_then(|v| v.as_str()).unwrap_or(""), f_port = content.get("fPort").and_then(|v| v.as_i64()).unwrap_or(-1), uplink_sk = %upl_sk_masked, uplink_tk = %upl_tk_masked, downlink_sk = %dnl_sk_masked, downlink_tk = %dnl_tk_masked, full_keys = log_keys_full, "POST /v1/uwb received");
 
     // Always log the raw body and base64 (preview) for visibility during vendor debugging
     let raw_json_str = raw_body.to_string();
@@ -74,13 +88,13 @@ pub async fn post_uwb(req: HttpRequest, body: web::Json<Value>, tx: web::Data<Se
     }
     let mut downlink_response: Option<Value> = None; // JSON detail about constructed/sent downlink
     if !data_b64.is_empty() {
-        match decode_frame(data_b64, &secret_key, &sign_token) {
+    match decode_frame(data_b64, &uplink_secret, &uplink_token) {
             Ok(df) => {
                 info!(msg_type = format!("0x{:02x}", df.message_type), "decode ok");
                 // If message type 0x01: build and encrypt a downlink and (optionally) send it to external server via reqwest
                 if df.message_type == 0x01 {
                     if let Ok(down_hex) = build_downlink_hex(&df) {
-                        if let Ok(encrypted_b64) = encrypt_downlink(now, &down_hex, &sign_token, &secret_key) {
+                        if let Ok(encrypted_b64) = encrypt_downlink(now, &down_hex, &downlink_token, &downlink_secret) {
                             // Attempt optional external POST if DOWNLINK_URL is configured.
                             let downlink_url = env::var("DOWNLINK_URL").ok();
                             let mut sent_obj = json!({ "sentData": encrypted_b64 });

@@ -9,6 +9,13 @@ services:
       # Verbose tracing in backend to capture deep decode diagnostics
       - RUST_LOG=${RUST_LOG:-debug}
       # Pass-through keys and debugging toggles (set in your shell before `docker compose up`)
+      # Uplink (decode) keys
+      - LORA_UPLINK_SECRET_KEY=${LORA_UPLINK_SECRET_KEY}
+      - LORA_UPLINK_SIGN_TOKEN=${LORA_UPLINK_SIGN_TOKEN}
+      # Downlink (encrypt) keys
+      - LORA_DOWNLINK_SECRET_KEY=${LORA_DOWNLINK_SECRET_KEY}
+      - LORA_DOWNLINK_SIGN_TOKEN=${LORA_DOWNLINK_SIGN_TOKEN}
+      # Back-compat: if only legacy names are set, backend falls back automatically
       - LORA_SECRET_KEY=${LORA_SECRET_KEY}
       - LORA_SIGN_TOKEN=${LORA_SIGN_TOKEN}
       # When set to 1/true, logs full keys (not masked). Use only during controlled debug windows.
@@ -17,8 +24,8 @@ services:
       - LORA_DECODE_FALLBACK=${LORA_DECODE_FALLBACK:-0}
       # Continue parsing even if HMAC doesn't match (debug only)
       - LORA_ALLOW_HMAC_MISMATCH=${LORA_ALLOW_HMAC_MISMATCH:-0}
-    # Try additional cipher modes (AES-CBC with IV from prefix or zero) and layouts
-    - LORA_TRY_CBC=${LORA_TRY_CBC:-0}
+      # Try additional cipher modes (AES-CBC with IV from prefix or zero) and layouts
+      - LORA_TRY_CBC=${LORA_TRY_CBC:-0}
   # Pass the frontend host port into the container so the server
   # can construct the correct allowed CORS origin for the demo frontend.
   # Do NOT pass BACKEND_PORT here – the server should bind to the
