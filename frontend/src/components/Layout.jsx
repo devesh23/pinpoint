@@ -1,82 +1,205 @@
 /**
  * Layout components for the Pinpoint frontend.
- *
- * This file contains presentational components (TopBar, small helpers) so that
- * the main application logic in `App.jsx` remains focused on state and behavior.
  */
 import React from 'react'
 import * as Mantine from '@mantine/core'
-import { IconHome, IconMapPin, IconUsers, IconRocket, IconSettings } from '@tabler/icons-react'
+import { IconDeviceAnalytics, IconListDetails, IconBuilding, IconSettings, IconMenu2, IconSun } from '@tabler/icons-react'
 
-function NavItem({ icon: Icon, label, active, onClick }){
+const navItems = [
+  { label: 'Device Map', view: 'home', icon: IconDeviceAnalytics },
+  { label: 'Device List', view: 'devices', icon: IconListDetails },
+  { label: 'Map Management', view: 'management', icon: IconBuilding }
+]
+
+function NavButton({ icon: Icon, label, active, onClick }) {
   return (
-    <Mantine.Tooltip label={label} position="right" withArrow>
-      <Mantine.UnstyledButton className={`leftnav-item ${active? 'active':''}`} onClick={onClick} aria-label={label}>
-        <Icon size={18} />
-        <span className="leftnav-label">{label}</span>
-      </Mantine.UnstyledButton>
-    </Mantine.Tooltip>
+    <button className={`dashboard-nav-item ${active ? 'active' : ''}`} onClick={onClick}>
+      <Icon size={24} strokeWidth={1.5} />
+      <span>{label}</span>
+    </button>
   )
 }
 
-/** TopBar + LeftNav
- * Props:
- * - onOpenAdmin: open admin/settings
- * - onNavigate: function(name) to navigate views
- * - currentView: current view string
- */
-export function TopBar({ onOpenAdmin, onNavigate = ()=>{}, currentView = 'home', backendPort, pollUrl, useLive, setUseLive, connStatus, onTogglePanel, fps, lastPacketAt, panelOpen=false, children }){
+export function TopBar({
+  onOpenAdmin,
+  onNavigate = () => { },
+  currentView = 'home',
+  backendPort,
+  pollUrl,
+  useLive,
+  setUseLive,
+  connStatus,
+  onTogglePanel,
+  fps,
+  lastPacketAt,
+  panelOpen = false,
+  children,
+  deviceMetrics = {},
+  debugInfo = {},
+  // Map-specific props
+  anchors = [],
+  factoryWidthMeters = 10,
+  factoryHeightMeters = 10
+}) {
+  const activeView = navItems.some(item => item.view === currentView) ? currentView : 'home'
+  const pageTitle = currentView === 'home' ? '1. Device Map' :
+    currentView === 'devices' ? '2. Device List' :
+      '3. Map Management'
+
   return (
-    <div className="layout-shell">
-      <aside className="leftnav">
-        <div className="leftnav-brand" aria-label="Pinpoint">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C7.582 2 4 5.582 4 10c0 5.25 6.5 12 8 12s8-6.75 8-12c0-4.418-3.582-8-8-8z" fill="#fff"/>
-            <circle cx="12" cy="10" r="3.2" fill="#8b6b3b"/>
-          </svg>
+    <div className="dashboard-shell">
+      {/* Sidebar */}
+      <aside className="dashboard-left-nav">
+        <div className="nav-items">
+          {navItems.map(item => (
+            <NavButton
+              key={item.label}
+              icon={item.icon}
+              label={item.label}
+              active={item.view === activeView}
+              onClick={() => onNavigate(item.view)}
+            />
+          ))}
         </div>
-        <div style={{ marginTop: 8 }}>
-          <NavItem icon={IconHome} label="Home" active={currentView==='home'} onClick={()=>onNavigate('home')} />
-          <NavItem icon={IconMapPin} label="Plan" active={currentView==='home'} onClick={()=>onNavigate('home')} />
-          <NavItem icon={IconUsers} label="Devices" active={currentView==='devices'} onClick={()=>onNavigate('devices')} />
-          <NavItem icon={IconRocket} label="Deploy" active={currentView==='deploy'} onClick={()=>onNavigate('deploy')} />
+        <div className="nav-footer">
+          <NavButton icon={IconSettings} label="Settings" onClick={onOpenAdmin} />
         </div>
-        <div style={{ marginTop: 'auto', marginBottom: 12 }}>
-          <NavItem icon={IconSettings} label="Settings" active={currentView==='admin'} onClick={()=>onNavigate('admin')} />
-        </div>
-  </aside>
+      </aside>
 
-  <Mantine.Box component="header" className="topbar" sx={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(0,0,0,0.04)' }} style={{ right: panelOpen ? 380 : 0 }}>
-        {/* Use a full-width box instead of Container to avoid inline margins and extra whitespace */}
-        <Mantine.Box sx={{ width:'100%', height:'100%' }}>
-          <Mantine.Group position="apart" align="center" noWrap style={{ height: '100%' }}>
-            <Mantine.Group spacing={8} align="center" style={{ paddingLeft: 16 }} noWrap>
-              <Mantine.Title order={4} style={{ margin: 0 }}>Pinpoint</Mantine.Title>
-              <div className="topbar-subtitle" style={{ opacity:.7 }}>Indoor positioning & live tracking</div>
-            </Mantine.Group>
+      {/* Main Content Area */}
+      <div className="dashboard-main">
+        {/* Top Bar */}
+        <header className="dashboard-topbar">
+          <div className="topbar-main">
+            <div className="topbar-left">
+              <div className="metrics-inline">
+                <div className="metric-inline">
+                  <div className="metric-icon" style={{ background: '#1e40af' }}>
+                    <span>🌐</span>
+                  </div>
+                  <span className="metric-text">Gateway</span>
+                  <span className="metric-value">
+                    {deviceMetrics.gateway?.online ?? 0}/{deviceMetrics.gateway?.total ?? 0}
+                  </span>
+                </div>
 
-            <Mantine.Group spacing="sm" align="center" noWrap>
-              <Mantine.Group spacing={6} sx={{ fontSize:12, color:'#6b5e4a' }}>
-                <Mantine.Badge variant="light" color={connStatus==='open'?'teal':connStatus==='connecting'?'yellow':'red'}>{connStatus}</Mantine.Badge>
-                <span>fps {typeof fps==='number' ? fps.toFixed(1) : '—'}</span>
-                <span>port {backendPort || '—'}</span>
-                <span>last {lastPacketAt ? new Date(lastPacketAt).toLocaleTimeString() : '—'}</span>
-              </Mantine.Group>
-              <Mantine.Switch checked={!!useLive} onChange={(e)=> setUseLive && setUseLive(e.currentTarget.checked)} size="sm" label={useLive? 'Live' : 'Mock'} />
-              <div>
-                <Mantine.Button size="xs" onClick={()=> onTogglePanel && onTogglePanel() }>Panel</Mantine.Button>
+                <div className="metric-inline">
+                  <div className="metric-icon" style={{ background: '#b45309' }}>
+                    <span>📡</span>
+                  </div>
+                  <span className="metric-text">Beacon</span>
+                  <span className="metric-value">
+                    {deviceMetrics.beacon?.online ?? 0}/{deviceMetrics.beacon?.total ?? 0}
+                  </span>
+                </div>
+
+                <div className="metric-inline">
+                  <div className="metric-icon" style={{ background: '#be123c' }}>
+                    <span>📍</span>
+                  </div>
+                  <span className="metric-text">Tag</span>
+                  <span className="metric-value">
+                    {deviceMetrics.tag?.online ?? 0}/{deviceMetrics.tag?.total ?? 0}
+                  </span>
+                </div>
               </div>
-            </Mantine.Group>
-          </Mantine.Group>
-        </Mantine.Box>
-      </Mantine.Box>
+            </div>
 
-      {/* content passed from App will be rendered here so we can shift it when nav expands */}
-      <div className="content" style={{ marginRight: panelOpen ? 380 : 0 }}>
-        {children}
+            <div className="topbar-right">
+              <button className="action-btn">
+                <span>One Click</span>
+              </button>
+              <button className="action-btn secondary">
+                <span>Deploy Config</span>
+              </button>
+
+              <span className="display-link">DISPLAY</span>
+
+              <button className="icon-btn">
+                <IconSun size={18} />
+              </button>
+              <button className="icon-btn" onClick={() => onTogglePanel && onTogglePanel()}>
+                <IconMenu2 size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* Map Toolbar Row (only show on map view) */}
+          {currentView === 'home' && (
+            <div className="map-toolbar-row">
+              <div className="map-toolbar-left">
+                <select className="map-dropdown">
+                  <option>Default</option>
+                </select>
+                <select className="map-dropdown" style={{ minWidth: 200 }}>
+                  <option>View the current map device</option>
+                </select>
+                <button className="map-btn-circle">
+                  <span>🔄</span>
+                </button>
+                <button className="map-btn-circle active">
+                  <span>2D</span>
+                </button>
+              </div>
+
+              <div className="map-toolbar-right">
+                <div className="map-stat-item">
+                  Anchor: <strong>{anchors.length}</strong>
+                </div>
+                <div className="map-stat-item">
+                  Tag: <strong>{Object.keys(deviceMetrics.tag?.online || {}).length || 0}</strong>
+                </div>
+                <div className="map-stat-item">
+                  Gateway: <strong>{deviceMetrics.gateway?.online || 0}</strong>
+                </div>
+                <div className="legend-item">
+                  <span className="legend-dot" style={{ background: '#ef4444' }}></span>
+                  <span>X-axis</span>
+                </div>
+                <div className="legend-item">
+                  <span className="legend-dot" style={{ background: '#3b82f6' }}></span>
+                  <span>Y-axis</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </header>
+
+        {/* Content */}
+        <div className="dashboard-content">
+          {children}
+        </div>
+
+        {/* Status Bar */}
+        <footer className="status-bar">
+          <div className="status-left">
+            <div className="status-item">
+              <span>Software Version:</span>
+              <span className="status-value">v1.3.0.43</span>
+            </div>
+          </div>
+          <div className="status-right">
+            <div className="status-item">
+              <span>CPU Usage:</span>
+              <span className={`status-value ${(debugInfo?.cpu || 18.95) > 80 ? 'red' : 'green'}`}>
+                {debugInfo?.cpu ? `${debugInfo.cpu}%` : '18.95%'}
+              </span>
+            </div>
+            <div className="status-item">
+              <span>Memory Usage:</span>
+              <span className={`status-value ${(debugInfo?.memory || 88.4) > 80 ? 'red' : 'green'}`}>
+                {debugInfo?.memory ? `${debugInfo.memory}%` : '88.4%'}
+              </span>
+            </div>
+            <div className="status-item">
+              <span>Disk Usage:</span>
+              <span className={`status-value ${(debugInfo?.disk || 89.29) > 80 ? 'red' : 'yellow'}`}>
+                {debugInfo?.disk ? `${debugInfo.disk}%` : '89.29%'}
+              </span>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   )
 }
-
-// No default export to avoid accidental circular imports; use named export { TopBar }

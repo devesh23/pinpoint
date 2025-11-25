@@ -1,0 +1,16 @@
+<svg width="1200" height="700" viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" fill="#02060d" />
+  <rect width="90" height="700" fill="#050a18" />
+  <rect x="80" y="0" width="1120" height="80" fill="#0c111f" rx="0" />
+  <text x="110" y="45" fill="#f8fbff" font-family="Inter" font-size="28" font-weight="600">Device Map</text>
+  <rect x="110" y="100" width="880" height="460" fill="#0d1324" rx="20" stroke="#1e2a47" stroke-width="2" />
+  <circle cx="300" cy="320" r="6" fill="#3b82f6" />
+  <circle cx="450" cy="260" r="6" fill="#fcd34d" />
+  <circle cx="620" cy="360" r="6" fill="#ef4444" />
+  <rect x="1020" y="120" width="140" height="120" fill="#0b1221" rx="16" stroke="#1f2d45" stroke-width="2" />
+  <rect x="1020" y="260" width="140" height="240" fill="#0b1221" rx="16" stroke="#1f2d45" stroke-width="2" />
+  <text x="1028" y="150" fill="#a5b4fc" font-family="Inter" font-size="14" font-weight="500">Status</text>
+  <text x="1028" y="285" fill="#a5b4fc" font-family="Inter" font-size="14" font-weight="500">Anchors</text>
+  <rect x="110" y="590" width="1050" height="80" fill="#070e1c" rx="12" stroke="#15223b" stroke-width="1.5" />
+  <text x="118" y="630" fill="#94a3b8" font-family="Inter" font-size="12">FPS 59 · CPU 12% · Memory 41% · Disk 36%</text>
+</svg>

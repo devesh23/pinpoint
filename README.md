@@ -66,6 +66,17 @@ npm run dev
 
 Ensure both processes are running; the frontend will auto-discover backend port via `public/config.json` (served statically) or fallback to 8080.
 
+## Screenshots
+
+### Device Map
+![Device Map](docs/screenshots/device-map.svg)
+
+### Device List
+![Device List](docs/screenshots/device-list.svg)
+
+### Map Management
+![Map Management](docs/screenshots/map-management.svg)
+
 ## Testing
 
 Frontend unit tests (trilateration, UI sizing) via:

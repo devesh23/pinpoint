@@ -1,87 +1,519 @@
-:root{ --bg:#f6efe6; --card:#fffaf2; --muted:#6b5e4a; --accent:#8b6b3b }
-*{box-sizing:border-box}
-.topbar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:linear-gradient(90deg,#fffaf2,#f6efe6);border-bottom:1px solid rgba(0,0,0,0.04);position:fixed;left:72px;right:0;top:0;z-index:60;width:100%}
-.topbar h1{margin:0;font-size:18px}
-.controls{display:flex;gap:10px;align-items:center}
-.input{padding:8px 10px;border:1px solid #dbeafe;border-radius:8px}
-.input.wide{width:360px}
-.btn{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
-.btn.muted{background:#eef2ff;color:#0b3bff}
-.main{display:flex;gap:12px;padding:8px 12px}
-.left{flex:1}
-.right{width:360px}
-.planCard{background:var(--card);border-radius:12px;padding:8px;box-shadow:0 6px 18px rgba(139,107,59,0.06)}
-.planControls{display:flex;gap:8px;align-items:center;margin-bottom:10px}
-.planCanvas{position:relative;height:68vh;border-radius:8px;overflow:hidden;background:linear-gradient(180deg,#fffaf2,#f6efe6);border:1px solid rgba(139,107,59,0.08)}
-.planCanvas img{position:absolute;left:0;top:0;right:0;bottom:0;width:100%;height:100%;object-fit:contain;object-position:center;z-index:0;background:transparent}
-/* If the plan is inlined as an <svg> instead of an <img>, make it fill the canvas too */
-.planCanvas svg{position:absolute;left:0;top:0;width:100%;height:100%;z-index:0}
-/* subtle grid overlay to aid placement */
-.planCanvas:before{ content:''; position:absolute; left:0; top:0; right:0; bottom:0; background-image: linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px); background-size: 40px 40px, 40px 40px; pointer-events:none; z-index:1 }
-.dot{position:absolute;width:18px;height:18px;background:#b05a2b;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;transform:translate(-50%,-50%);box-shadow:0 6px 18px rgba(176,90,43,0.12);transition:left 0.6s linear, top 0.6s linear}
-.router{position:absolute;width:36px;height:24px;background:var(--accent);color:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;transform:translate(-50%,-50%);box-shadow:0 6px 18px rgba(139,107,59,0.12);cursor:grab}
-.label{position:absolute;font-size:12px;color:#0b2540;transform:translate(-50%,0);margin-top:6px}
-.pathLayer{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:2}
-.panel{background:var(--card);padding:12px;border-radius:10px;margin-bottom:12px}
-.muted{color:var(--muted)}
-.json{white-space:pre-wrap;max-height:360px;overflow:auto;background:#fbfdff;padding:8px;border-radius:6px}
-.empty{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted)}
+:root {
+  /* Dark Theme Palette */
+  --bg-base: #1a1a1a;
+  --bg-sidebar: #0a0a0a;
+  --bg-header: #2a2a2a;
+  --bg-panel: #252526;
+  --bg-input: #3c3c3c;
+  --border-color: #3e3e42;
+  --accent-blue: #0ea5e9;
+  --accent-purple: #a855f7;
+  --text-primary: #e5e5e5;
+  --text-secondary: #a3a3a3;
+  --text-highlight: #ffffff;
 
-/* Animated segment when a device moves between two points */
-.drawSegment{ stroke-dasharray:1000; stroke-dashoffset:1000; animation: drawLine 600ms linear forwards, fadeLine 900ms linear 600ms forwards }
-@keyframes drawLine{ to { stroke-dashoffset: 0 } }
-@keyframes fadeLine{ from { stroke-opacity: 1 } to { stroke-opacity: 0 } }
-
-/* Overlay helpers for Mantine-wrapped anchors and devices */
-.overlay-anchor{ display:flex; flex-direction:column; align-items:center; gap:4px; pointer-events:auto; transform:translate(-50%,-100%); }
-.overlay-anchor .mantine-ActionIcon-root{ box-shadow:0 6px 18px rgba(11,92,255,0.12) }
-.overlay-device{ display:flex; align-items:center; justify-content:center; pointer-events:auto; transform:translate(-50%,-50%); }
-
-/* Left navigation styles */
-.layout-shell{ display:flex }
-.leftnav{ width:72px; background:#f2e9dd; display:flex;flex-direction:column;align-items:center;padding:12px 6px;border-right:1px solid rgba(0,0,0,0.06);height:100vh;position:fixed;left:0;top:0;z-index:120;overflow:visible;transition:width 220ms ease }
-.leftnav-brand{ width:44px;height:44px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;margin-bottom:8px }
-.leftnav-item{ width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#4b4336;margin:6px 0;transition:all .15s ease;background:transparent; box-sizing:border-box }
-.leftnav-item svg{ width:20px; height:20px; display:block; stroke:currentColor; fill:currentColor }
-.leftnav-item svg *{ stroke:currentColor; fill:currentColor }
-.leftnav-item:hover{ background:rgba(139,107,59,0.12); color:var(--accent) }
-.leftnav-item.active{ background:#e7d9c7; color:#493a26 }
-/* label next to icon when nav expands */
-.leftnav-label{ display:none; margin-left:10px; font-size:13px; color:var(--muted) }
-.leftnav:hover{ width:200px }
-.leftnav:hover .leftnav-item{ justify-content:flex-start; padding-left:12px; padding-right:12px; width:100% }
-.leftnav:hover .leftnav-item.active{ width:100% }
-.leftnav:hover .leftnav-item:hover{ background:rgba(139,107,59,0.12) }
-.leftnav:hover .leftnav-label{ display:inline }
-
-/* animate topbar and content when nav expands */
-.topbar{ transition: left 220ms ease, right 220ms ease }
-.leftnav:hover ~ .topbar{ left:200px }
-.content{ margin-left:72px; transition: margin-left 220ms ease, margin-right 220ms ease; padding-top:56px; width:100% }
-.leftnav:hover ~ .content{ margin-left:200px }
-
-/* Right panel spacing handled inline via panelOpen prop; class-based rules removed to avoid conflicts */
-
-/* control pills */
-.control-pill{border-radius:999px;padding:8px 12px;border:1px solid rgba(139,107,59,0.08);background:transparent}
-.control-pill.primary{background:var(--accent);color:#fff;border:none}
-
-/* shift main container to account for fixed left nav */
- .app > .mantine-Container{ margin-left:0 }
-
-/* shift the entire app to the right so fixed left nav doesn't overlap content */
-.app{ margin-left:16px; padding-top:0 }
-/* small screen tweak: reduce left nav and margins */
-@media (max-width: 900px){
-	/* Hide left nav on small screens and reset offsets so nothing is left behind */
-	.leftnav{ display:none }
-	/* topbar is positioned fixed using `left`; reset it to 0 when nav is hidden */
-	.topbar{ left:0 !important; right:0 }
-	/* content and app should not keep left margins when nav is hidden */
-	.content{ margin-left:0; padding-top:56px }
-	.app{ margin-left:0; padding-top:0 }
-	.app > .mantine-Container{ margin-left:0 }
+  /* Status Colors */
+  --status-green: #22c55e;
+  --status-yellow: #eab308;
+  --status-red: #ef4444;
 }
 
-/* Ensure SVG path layer spans the plan and stays above the image but under interactive badges */
-.pathLayer{ position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:3 }
+* {
+  box-sizing: border-box;
+}
+
+body,
+#root {
+  min-height: 100vh;
+  margin: 0;
+  background: var(--bg-base);
+  font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
+  color: var(--text-primary);
+  font-size: 13px;
+  overflow: hidden;
+}
+
+.app-root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Layout Grid --- */
+.dashboard-shell {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  grid-template-rows: auto 1fr 24px;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: var(--bg-base);
+}
+
+/* --- Sidebar --- */
+.dashboard-left-nav {
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+  gap: 8px;
+  grid-row: 1 / -1;
+  z-index: 100;
+}
+
+.nav-brand {
+  display: none;
+}
+
+.nav-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  align-items: center;
+}
+
+.dashboard-nav-item {
+  width: 70px;
+  height: 60px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 0;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s, background 0.2s;
+  font-size: 10px;
+  padding: 8px 4px;
+}
+
+.dashboard-nav-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-highlight);
+}
+
+.dashboard-nav-item.active {
+  color: var(--accent-blue);
+  background: rgba(14, 165, 233, 0.1);
+}
+
+.nav-footer {
+  margin-top: auto;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 10px;
+}
+
+/* --- Main Area --- */
+.dashboard-main {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-base);
+  position: relative;
+  grid-column: 2;
+  grid-row: 1 / -1;
+}
+
+/* --- Top Bar --- */
+.dashboard-topbar {
+  background: var(--bg-header);
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.topbar-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  gap: 16px;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.metrics-inline {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.metric-inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.metric-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.metric-text {
+  color: var(--text-secondary);
+}
+
+.metric-value {
+  color: var(--text-highlight);
+  font-weight: 500;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.action-btn {
+  background: var(--accent-blue);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.action-btn:hover {
+  background: #0284c7;
+}
+
+.action-btn.secondary {
+  background: var(--accent-purple);
+}
+
+.action-btn.secondary:hover {
+  background: #9333ea;
+}
+
+.display-link {
+  color: var(--text-highlight);
+  text-decoration: none;
+  font-size: 12px;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-highlight);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.icon-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* --- Map Toolbar (in header) --- */
+.map-toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid var(--border-color);
+}
+
+.map-toolbar-left {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.map-dropdown {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--text-highlight);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  min-width: 120px;
+  cursor: pointer;
+}
+
+.map-btn-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--text-highlight);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.map-btn-circle.active {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: white;
+}
+
+.map-toolbar-right {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  font-size: 12px;
+}
+
+.map-stat-item {
+  color: var(--text-secondary);
+}
+
+.map-stat-item strong {
+  color: var(--text-highlight);
+  margin-left: 4px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-highlight);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* --- Content Area (Map) --- */
+.dashboard-content {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #2d2d30;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Grid Background Effect */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+/* --- Floating Right Toolbar --- */
+.floating-toolbar-right {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.floating-btn {
+  width: 36px;
+  height: 36px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: var(--text-highlight);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+}
+
+.floating-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* --- Bottom Info Overlay --- */
+.map-info-overlay {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  pointer-events: none;
+  z-index: 10;
+  font-size: 11px;
+}
+
+.info-line {
+  color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 2px 8px;
+  border-radius: 2px;
+  align-self: flex-start;
+  backdrop-filter: blur(10px);
+}
+
+.zoom-controls-bottom {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 4px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 10;
+  pointer-events: auto;
+  backdrop-filter: blur(10px);
+}
+
+.zoom-controls-bottom .icon-btn {
+  padding: 4px;
+}
+
+/* --- Status Bar --- */
+.status-bar {
+  background: #0a0a0a;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  grid-column: 1 / -1;
+  height: 24px;
+}
+
+.status-left,
+.status-right {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.status-item {
+  display: flex;
+  gap: 6px;
+}
+
+.status-value {
+  font-weight: 500;
+}
+
+.status-value.green {
+  color: var(--status-green);
+}
+
+.status-value.yellow {
+  color: var(--status-yellow);
+}
+
+.status-value.red {
+  color: var(--status-red);
+}
+
+/* --- Plan Wrapper --- */
+.plan-wrapper {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+.planCanvas {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* --- Overlays --- */
+.overlay-anchor text {
+  fill: var(--text-highlight);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.overlay-device text {
+  fill: var(--text-highlight);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* --- Mantine Overrides --- */
+.mantine-Modal-content,
+.mantine-Drawer-content,
+.mantine-Menu-dropdown {
+  background-color: var(--bg-panel) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-highlight) !important;
+}
+
+.mantine-Input-input {
+  background-color: var(--bg-input) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-highlight) !important;
+}
+
+.mantine-Text-root {
+  color: var(--text-primary);
+}
+
+.mantine-Drawer-body {
+  background-color: var(--bg-panel) !important;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .dashboard-shell {
+    grid-template-columns: 60px 1fr;
+  }
+
+  .dashboard-nav-item {
+    width: 60px;
+  }
+}
+
+@media (max-width: 800px) {
+  .dashboard-shell {
+    grid-template-columns: 0 1fr;
+  }
+
+  .dashboard-left-nav {
+    position: absolute;
+    left: -9999px;
+  }
+}

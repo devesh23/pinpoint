@@ -1,0 +1,35 @@
+<svg width="1200" height="700" viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" fill="#02060d" />
+  <rect width="90" height="700" fill="#050a18" />
+  <rect x="80" y="0" width="1120" height="80" fill="#0c111f" />
+  <text x="110" y="45" fill="#f8fbff" font-family="Inter" font-size="28" font-weight="600">Device List</text>
+  <rect x="110" y="110" width="990" height="140" rx="20" fill="#0b1221" stroke="#1f2a40" stroke-width="1.5" />
+  <text x="140" y="150" fill="#94a3b8" font-family="Inter" font-size="12">Gateway Online / Total</text>
+  <text x="140" y="175" fill="#f8fbff" font-family="Inter" font-size="24">3 / 5</text>
+  <text x="370" y="150" fill="#94a3b8" font-family="Inter" font-size="12">Beacon Online / Total</text>
+  <text x="370" y="175" fill="#f8fbff" font-family="Inter" font-size="24">8 / 12</text>
+  <text x="600" y="150" fill="#94a3b8" font-family="Inter" font-size="12">Tag Online / Total</text>
+  <text x="600" y="175" fill="#f8fbff" font-family="Inter" font-size="24">21 / 21</text>
+  <rect x="110" y="270" width="990" height="140" rx="20" fill="#0b1221" stroke="#1f2a40" stroke-width="1.5" />
+  <rect x="140" y="305" width="180" height="40" rx="10" fill="#101828" stroke="#1f2a40" />
+  <text x="150" y="330" fill="#94a3b8" font-family="Inter" font-size="12">Search</text>
+  <rect x="340" y="305" width="170" height="40" rx="10" fill="#101828" stroke="#1f2a40" />
+  <text x="350" y="330" fill="#94a3b8" font-family="Inter" font-size="12">Device Type</text>
+  <rect x="540" y="305" width="170" height="40" rx="10" fill="#101828" stroke="#1f2a40" />
+  <text x="550" y="330" fill="#94a3b8" font-family="Inter" font-size="12">Online Status</text>
+  <rect x="740" y="305" width="170" height="40" rx="10" fill="#101828" stroke="#1f2a40" />
+  <text x="750" y="330" fill="#94a3b8" font-family="Inter" font-size="12">Exclude version</text>
+  <rect x="110" y="440" width="990" height="220" rx="20" fill="#0d1324" stroke="#1f2a40" stroke-width="1.5" />
+  <rect x="130" y="460" width="820" height="20" fill="#101828" />
+  <text x="150" y="477" fill="#94a3b8" font-family="Inter" font-size="12">UID</text>
+  <text x="330" y="477" fill="#94a3b8" font-family="Inter" font-size="12">Name</text>
+  <text x="500" y="477" fill="#94a3b8" font-family="Inter" font-size="12">Type</text>
+  <text x="620" y="477" fill="#94a3b8" font-family="Inter" font-size="12">Product</text>
+  <text x="770" y="477" fill="#94a3b8" font-family="Inter" font-size="12">Firmware Version</text>
+  <text x="930" y="477" fill="#94a3b8" font-family="Inter" font-size="12">Online / Offline Time</text>
+  <rect x="150" y="510" width="920" height="14" fill="#171f33" />
+  <rect x="150" y="540" width="920" height="14" fill="#171f33" />
+  <rect x="150" y="570" width="920" height="14" fill="#171f33" />
+  <rect x="110" y="670" width="990" height="60" rx="12" fill="#070e1c" stroke="#1b2440" stroke-width="1.5" />
+  <text x="150" y="705" fill="#94a3b8" font-family="Inter" font-size="12">Software Version v1.3.0 · CPU Usage 18.9% · Memory 88.4% · Disk 89.2%</text>
+</svg>
