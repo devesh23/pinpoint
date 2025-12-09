@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import * as Mantine from '@mantine/core'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Badge } from "@/components/ui/badge"
 
 export default function Admin({ anchors, setAnchors, anchorNames, setAnchorNames, deviceNames, setDeviceNames, factoryWidthMeters, factoryHeightMeters, setFactoryWidthMeters, setFactoryHeightMeters, anchorHeight, setAnchorHeight, tagHeight, setTagHeight, onClose, apiKey, setApiKey, pollUrl, setPollUrl, useLive, setUseLive, smoothingMethod, setSmoothingMethod, connStatus, logs, fetchNow, clearLines, clearAllLines }) {
   const [localAnchors, setLocalAnchors] = useState(anchors)
@@ -11,80 +17,118 @@ export default function Admin({ anchors, setAnchors, anchorNames, setAnchorNames
   }
 
   return (
-    <div style={{ padding: 12 }}>
-      <Mantine.Stack spacing="md">
-        <Mantine.Group position="apart">
-          <Mantine.Text weight={700} size="lg">Admin</Mantine.Text>
-          <Mantine.Group>
-            <Mantine.Button variant="default" onClick={onClose}>Close</Mantine.Button>
-            <Mantine.Button onClick={save}>Save</Mantine.Button>
-          </Mantine.Group>
-        </Mantine.Group>
+    <div className="p-3 space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold">Admin</h2>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={onClose}>Close</Button>
+          <Button onClick={save}>Save</Button>
+        </div>
+      </div>
 
-        <Mantine.Group grow>
-          <Mantine.NumberInput label="Factory Width (m)" value={factoryWidthMeters} onChange={(v) => setFactoryWidthMeters(v || 0)} />
-          <Mantine.NumberInput label="Factory Height (m)" value={factoryHeightMeters} onChange={(v) => setFactoryHeightMeters(v || 0)} />
-        </Mantine.Group>
-        <Mantine.Group grow>
-          <Mantine.NumberInput label="Anchor Height (m)" value={anchorHeight} onChange={(v) => setAnchorHeight(v || 0)} precision={2} step={0.1} />
-          <Mantine.NumberInput label="Tag Height (m)" value={tagHeight} onChange={(v) => setTagHeight(v || 0)} precision={2} step={0.1} />
-        </Mantine.Group>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Factory Width (m)</Label>
+          <Input type="number" value={factoryWidthMeters} onChange={(e) => setFactoryWidthMeters(parseFloat(e.target.value) || 0)} />
+        </div>
+        <div className="space-y-2">
+          <Label>Factory Height (m)</Label>
+          <Input type="number" value={factoryHeightMeters} onChange={(e) => setFactoryHeightMeters(parseFloat(e.target.value) || 0)} />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Anchor Height (m)</Label>
+          <Input type="number" step="0.1" value={anchorHeight} onChange={(e) => setAnchorHeight(parseFloat(e.target.value) || 0)} />
+        </div>
+        <div className="space-y-2">
+          <Label>Tag Height (m)</Label>
+          <Input type="number" step="0.1" value={tagHeight} onChange={(e) => setTagHeight(parseFloat(e.target.value) || 0)} />
+        </div>
+      </div>
 
+      <div className="space-y-4">
         <div>
-          <Mantine.Text size="sm" weight={600}>Connection & Stream</Mantine.Text>
-          <Mantine.Text color="dimmed" size="sm">Configure API key, poll URL, streaming mode and smoothing.</Mantine.Text>
-          <Mantine.Group mt="sm">
-            <Mantine.TextInput placeholder="API Key (optional)" value={apiKey || ''} onChange={e => setApiKey(e.target.value)} />
-            <Mantine.TextInput placeholder="Poll URL" value={pollUrl || ''} onChange={e => setPollUrl(e.target.value)} sx={{ flex: 1 }} />
-          </Mantine.Group>
-          <Mantine.Group mt="sm">
-            <Mantine.Switch label="Use Live Stream" checked={!!useLive} onChange={(e) => setUseLive(e.currentTarget.checked)} />
-            <Mantine.Select data={[{ value: 'ema', label: 'EMA (fast)' }, { value: 'kalman', label: 'Kalman (smooth)' }]} value={smoothingMethod || 'ema'} onChange={(v) => setSmoothingMethod(v)} style={{ width: 220 }} />
-            <Mantine.Button onClick={fetchNow}>Fetch Now</Mantine.Button>
-            <Mantine.Button variant="light" onClick={clearLines}>Clear Lines</Mantine.Button>
-            <Mantine.Button variant="outline" color="red" onClick={clearAllLines}>Clear All</Mantine.Button>
-          </Mantine.Group>
+          <h3 className="text-sm font-semibold">Connection & Stream</h3>
+          <p className="text-sm text-muted-foreground">Configure API key, poll URL, streaming mode and smoothing.</p>
+        </div>
 
-          <Mantine.Group mt="sm" position="left" align="center">
-            <Mantine.Badge color={connStatus === 'open' ? 'green' : connStatus === 'connecting' ? 'yellow' : 'red'}>{connStatus}</Mantine.Badge>
-            <Mantine.Text size="sm">Connection status</Mantine.Text>
-          </Mantine.Group>
+        <div className="flex gap-4">
+          <Input placeholder="API Key (optional)" value={apiKey || ''} onChange={e => setApiKey(e.target.value)} />
+          <Input placeholder="Poll URL" value={pollUrl || ''} onChange={e => setPollUrl(e.target.value)} className="flex-1" />
+        </div>
 
-          <div style={{ marginTop: 8 }}>
-            <Mantine.Text size="sm" weight={600}>Event Log</Mantine.Text>
-            <Mantine.ScrollArea style={{ height: 160, background: '#0b1220', color: '#cbd5e1', padding: 8, borderRadius: 6 }}>
-              {(!logs || logs.length === 0) ? <Mantine.Text color="dimmed">No events yet</Mantine.Text> : logs.slice().reverse().map((l, i) => (<div key={i}>{l}</div>))}
-            </Mantine.ScrollArea>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center space-x-2">
+            <Switch id="use-live" checked={!!useLive} onCheckedChange={setUseLive} />
+            <Label htmlFor="use-live">Use Live Stream</Label>
           </div>
+
+          <Select value={smoothingMethod || 'ema'} onValueChange={setSmoothingMethod}>
+            <SelectTrigger className="w-[220px]">
+              <SelectValue placeholder="Smoothing" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ema">EMA (fast)</SelectItem>
+              <SelectItem value="kalman">Kalman (smooth)</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button onClick={fetchNow}>Fetch Now</Button>
+          <Button variant="secondary" onClick={clearLines}>Clear Lines</Button>
+          <Button variant="destructive" onClick={clearAllLines}>Clear All</Button>
         </div>
 
+        <div className="flex items-center gap-2">
+          <Badge variant={connStatus === 'open' ? 'default' : connStatus === 'connecting' ? 'secondary' : 'destructive'} className={connStatus === 'open' ? 'bg-green-500 hover:bg-green-600' : connStatus === 'connecting' ? 'bg-yellow-500 hover:bg-yellow-600' : ''}>
+            {connStatus}
+          </Badge>
+          <span className="text-sm">Connection status</span>
+        </div>
+
+        <div className="mt-2">
+          <h3 className="text-sm font-semibold mb-2">Event Log</h3>
+          <ScrollArea className="h-40 w-full rounded-md border bg-muted/50 p-2">
+            {(!logs || logs.length === 0) ? (
+              <span className="text-muted-foreground text-sm">No events yet</span>
+            ) : (
+              logs.slice().reverse().map((l, i) => (
+                <div key={i} className="text-xs font-mono">{l}</div>
+              ))
+            )}
+          </ScrollArea>
+        </div>
+      </div>
+
+      <div className="space-y-2">
         <div>
-          <Mantine.Text size="sm" weight={600}>Anchor display names</Mantine.Text>
-          <Mantine.Text color="dimmed" size="sm">Assign friendly names to anchors (beacon ids)</Mantine.Text>
-          <Mantine.Stack mt="sm">
-            {anchors.map(a => (
-              <Mantine.Group key={a.beaconId} spacing="sm">
-                <Mantine.Text weight={600} style={{ minWidth: 120 }}>{a.beaconId}</Mantine.Text>
-                <Mantine.TextInput value={anchorNames[a.beaconId] || ''} onChange={e => setAnchorNames(prev => ({ ...prev, [a.beaconId]: e.target.value }))} sx={{ flex: 1 }} />
-              </Mantine.Group>
-            ))}
-          </Mantine.Stack>
+          <h3 className="text-sm font-semibold">Anchor display names</h3>
+          <p className="text-sm text-muted-foreground">Assign friendly names to anchors (beacon ids)</p>
         </div>
+        <div className="space-y-2">
+          {anchors.map(a => (
+            <div key={a.beaconId} className="flex items-center gap-2">
+              <span className="font-semibold min-w-[120px] text-sm">{a.beaconId}</span>
+              <Input value={anchorNames[a.beaconId] || ''} onChange={e => setAnchorNames(prev => ({ ...prev, [a.beaconId]: e.target.value }))} className="flex-1" />
+            </div>
+          ))}
+        </div>
+      </div>
 
+      <div className="space-y-2">
         <div>
-          <Mantine.Text size="sm" weight={600}>Device display names</Mantine.Text>
-          <Mantine.Text color="dimmed" size="sm">Assign friendly names to tracked devices when known.</Mantine.Text>
-          <Mantine.Stack mt="sm">
-            {Object.keys(deviceNames || {}).map(d => (
-              <Mantine.Group key={d} spacing="sm">
-                <Mantine.Text weight={600} style={{ minWidth: 120 }}>{d}</Mantine.Text>
-                <Mantine.TextInput value={deviceNames[d] || ''} onChange={e => setDeviceNames(prev => ({ ...prev, [d]: e.target.value }))} sx={{ flex: 1 }} />
-              </Mantine.Group>
-            ))}
-          </Mantine.Stack>
+          <h3 className="text-sm font-semibold">Device display names</h3>
+          <p className="text-sm text-muted-foreground">Assign friendly names to tracked devices when known.</p>
         </div>
-
-      </Mantine.Stack>
+        <div className="space-y-2">
+          {Object.keys(deviceNames || {}).map(d => (
+            <div key={d} className="flex items-center gap-2">
+              <span className="font-semibold min-w-[120px] text-sm">{d}</span>
+              <Input value={deviceNames[d] || ''} onChange={e => setDeviceNames(prev => ({ ...prev, [d]: e.target.value }))} className="flex-1" />
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

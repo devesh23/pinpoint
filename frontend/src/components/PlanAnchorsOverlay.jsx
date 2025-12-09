@@ -1,42 +1,37 @@
 import React from 'react'
-import * as Mantine from '@mantine/core'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Button } from "@/components/ui/button"
 import { IconMapPin, IconEdit, IconTrash } from '@tabler/icons-react'
 
-/**
- * PlanAnchorsOverlay
- * Renders draggable anchor pins and edit/remove actions on raster images.
- * Props:
- * - anchors: Array<{ beaconId, x, y }>
- * - anchorNames: Record<string,string>
- * - normToPercent: (nx, ny) => { left, top }
- * - onStartDrag: (index:number, event:MouseEvent) => void
- * - onEdit: (index:number) => void
- * - onRemove: (index:number) => void
- */
-export default function PlanAnchorsOverlay({ anchors, anchorNames, normToPercent, onStartDrag, onEdit, onRemove }){
+export default function PlanAnchorsOverlay({ anchors, anchorNames, normToPercent, onStartDrag, onEdit, onRemove }) {
   return (
-    <>
-      {(anchors||[]).map((a, idx)=> {
+    <TooltipProvider>
+      {(anchors || []).map((a, idx) => {
         const pos = normToPercent(a.x, a.y)
         const left = `${pos.left}%`, top = `${pos.top}%`
         return (
-          <div key={a.beaconId + idx} className="overlay-anchor" style={{ position:'absolute', left, top, zIndex:4 }}>
-            <Mantine.Tooltip label={anchorNames[a.beaconId] || a.beaconId} withArrow position="right">
-              <Mantine.ActionIcon size="lg" variant="filled" color="blue" onMouseDown={(e)=> onStartDrag && onStartDrag(idx, e)} aria-label="drag-anchor">
-                <IconMapPin size={18} />
-              </Mantine.ActionIcon>
-            </Mantine.Tooltip>
-            <Mantine.Group spacing={6} style={{ marginTop:6, justifyContent:'center' }}>
-              <Mantine.ActionIcon size="xs" variant="light" onClick={()=> onEdit && onEdit(idx)} aria-label="edit-anchor">
-                <IconEdit size={14} />
-              </Mantine.ActionIcon>
-              <Mantine.ActionIcon size="xs" color="red" variant="light" onClick={()=> onRemove && onRemove(idx)} aria-label="remove-anchor">
-                <IconTrash size={14} />
-              </Mantine.ActionIcon>
-            </Mantine.Group>
+          <div key={a.beaconId + idx} className="overlay-anchor absolute z-10 flex flex-col items-center" style={{ left, top }}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="icon" className="h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white cursor-move" onMouseDown={(e) => onStartDrag && onStartDrag(idx, e)} aria-label="drag-anchor">
+                  <IconMapPin size={18} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>{anchorNames[a.beaconId] || a.beaconId}</p>
+              </TooltipContent>
+            </Tooltip>
+            <div className="flex gap-1 mt-1 justify-center">
+              <Button size="icon" variant="secondary" className="h-6 w-6" onClick={() => onEdit && onEdit(idx)} aria-label="edit-anchor">
+                <IconEdit size={12} />
+              </Button>
+              <Button size="icon" variant="destructive" className="h-6 w-6" onClick={() => onRemove && onRemove(idx)} aria-label="remove-anchor">
+                <IconTrash size={12} />
+              </Button>
+            </div>
           </div>
         )
       })}
-    </>
+    </TooltipProvider>
   )
 }

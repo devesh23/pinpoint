@@ -1,9 +1,11 @@
 /**
- * Layout components for the Pinpoint frontend.
+ * Layout components for the Pinpoint frontend - Matching reference design exactly
  */
 import React from 'react'
-import * as Mantine from '@mantine/core'
 import { IconDeviceAnalytics, IconListDetails, IconBuilding, IconSettings, IconMenu2, IconSun } from '@tabler/icons-react'
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 const navItems = [
   { label: 'Device Map', view: 'home', icon: IconDeviceAnalytics },
@@ -13,9 +15,17 @@ const navItems = [
 
 function NavButton({ icon: Icon, label, active, onClick }) {
   return (
-    <button className={`dashboard-nav-item ${active ? 'active' : ''}`} onClick={onClick}>
-      <Icon size={24} strokeWidth={1.5} />
-      <span>{label}</span>
+    <button
+      className={cn(
+        "flex flex-col items-center justify-center py-4 px-4 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors border-l-2 border-transparent",
+        active && "text-blue-500 bg-accent/30 border-l-blue-500"
+      )}
+      onClick={onClick}
+      title={label}
+    >
+      <Icon size={24} strokeWidth={1.5} className="mb-2" />
+      <span className="text-[10px] leading-tight text-center whitespace-nowrap">{label.split(' ')[0]}</span>
+      <span className="text-[10px] leading-tight text-center whitespace-nowrap">{label.split(' ')[1] || ''}</span>
     </button>
   )
 }
@@ -24,33 +34,22 @@ export function TopBar({
   onOpenAdmin,
   onNavigate = () => { },
   currentView = 'home',
-  backendPort,
-  pollUrl,
-  useLive,
-  setUseLive,
-  connStatus,
   onTogglePanel,
-  fps,
-  lastPacketAt,
-  panelOpen = false,
-  children,
   deviceMetrics = {},
-  debugInfo = {},
-  // Map-specific props
   anchors = [],
-  factoryWidthMeters = 10,
-  factoryHeightMeters = 10
+  children
 }) {
   const activeView = navItems.some(item => item.view === currentView) ? currentView : 'home'
-  const pageTitle = currentView === 'home' ? '1. Device Map' :
-    currentView === 'devices' ? '2. Device List' :
-      '3. Map Management'
 
   return (
-    <div className="dashboard-shell">
-      {/* Sidebar */}
-      <aside className="dashboard-left-nav">
-        <div className="nav-items">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#1a1a1a]">
+      {/* Sidebar - Narrow with proper spacing */}
+      <aside className="w-[100px] bg-[#0a0a0a] border-r border-[#2a2a2a] flex flex-col">
+        <div className="h-16 flex items-center justify-center border-b border-[#2a2a2a]">
+          <IconDeviceAnalytics size={28} className="text-blue-500" />
+        </div>
+
+        <nav className="flex-1">
           {navItems.map(item => (
             <NavButton
               key={item.label}
@@ -60,105 +59,175 @@ export function TopBar({
               onClick={() => onNavigate(item.view)}
             />
           ))}
-        </div>
-        <div className="nav-footer">
-          <NavButton icon={IconSettings} label="Settings" onClick={onOpenAdmin} />
+        </nav>
+
+        <div className="border-t border-[#2a2a2a]">
+          <button
+            className="w-full flex items-center justify-center py-5 text-muted-foreground hover:text-foreground hover:bg-accent/50"
+            onClick={onOpenAdmin}
+            title="Settings"
+          >
+            <IconSettings size={22} />
+          </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <div className="dashboard-main">
-        {/* Top Bar */}
-        <header className="dashboard-topbar">
-          <div className="topbar-main">
-            <div className="topbar-left">
-              <div className="metrics-inline">
-                <div className="metric-inline">
-                  <div className="metric-icon" style={{ background: '#1e40af' }}>
-                    <span>🌐</span>
-                  </div>
-                  <span className="metric-text">Gateway</span>
-                  <span className="metric-value">
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Bar - Card-based metrics */}
+        <header className="bg-[#2a2a2a] border-b border-[#3a3a3a]">
+          <div className="h-16 flex items-center justify-between px-4 py-3">
+            <div className="flex items-center gap-4">
+              {/* Card components for metrics */}
+              <Card className="bg-[#1e1e1e] border-[#3a3a3a] px-3 py-2 flex items-center gap-2">
+                <div className="w-6 h-6 rounded bg-blue-600/20 flex items-center justify-center">
+                  <span className="text-xs">🌐</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-muted-foreground">Gateway</span>
+                  <span className="text-sm font-semibold text-foreground">
                     {deviceMetrics.gateway?.online ?? 0}/{deviceMetrics.gateway?.total ?? 0}
                   </span>
                 </div>
+              </Card>
 
-                <div className="metric-inline">
-                  <div className="metric-icon" style={{ background: '#b45309' }}>
-                    <span>📡</span>
-                  </div>
-                  <span className="metric-text">Beacon</span>
-                  <span className="metric-value">
+              <Card className="bg-[#1e1e1e] border-[#3a3a3a] px-3 py-2 flex items-center gap-2">
+                <div className="w-6 h-6 rounded bg-orange-600/20 flex items-center justify-center">
+                  <span className="text-xs">📡</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-muted-foreground">Beacon</span>
+                  <span className="text-sm font-semibold text-foreground">
                     {deviceMetrics.beacon?.online ?? 0}/{deviceMetrics.beacon?.total ?? 0}
                   </span>
                 </div>
+              </Card>
 
-                <div className="metric-inline">
-                  <div className="metric-icon" style={{ background: '#be123c' }}>
-                    <span>📍</span>
-                  </div>
-                  <span className="metric-text">Tag</span>
-                  <span className="metric-value">
+              <Card className="bg-[#1e1e1e] border-[#3a3a3a] px-3 py-2 flex items-center gap-2">
+                <div className="w-6 h-6 rounded bg-red-600/20 flex items-center justify-center">
+                  <span className="text-xs">📍</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-muted-foreground">Tag</span>
+                  <span className="text-sm font-semibold text-foreground">
                     {deviceMetrics.tag?.online ?? 0}/{deviceMetrics.tag?.total ?? 0}
                   </span>
                 </div>
-              </div>
+              </Card>
             </div>
 
-            <div className="topbar-right">
-              <button className="action-btn">
-                <span>One Click</span>
+            <div className="flex items-center gap-4">
+              <button
+                style={{
+                  height: '32px',
+                  padding: '0 16px',
+                  backgroundColor: '#2563eb',
+                  color: 'white',
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  borderRadius: '4px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+              >
+                One Click
               </button>
-              <button className="action-btn secondary">
-                <span>Deploy Config</span>
+              <button
+                style={{
+                  height: '32px',
+                  padding: '0 16px',
+                  backgroundColor: '#9333ea',
+                  color: 'white',
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  borderRadius: '4px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#7e22ce'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#9333ea'}
+              >
+                Deploy Config
               </button>
 
-              <span className="display-link">DISPLAY</span>
+              <span className="text-xs font-semibold tracking-wider cursor-pointer hover:text-blue-400">DISPLAY</span>
 
-              <button className="icon-btn">
-                <IconSun size={18} />
-              </button>
-              <button className="icon-btn" onClick={() => onTogglePanel && onTogglePanel()}>
-                <IconMenu2 size={18} />
-              </button>
+              <div className="h-6 w-px bg-border" />
+
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <IconSun size={16} />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onTogglePanel && onTogglePanel()}>
+                <IconMenu2 size={16} />
+              </Button>
             </div>
           </div>
 
-          {/* Map Toolbar Row (only show on map view) */}
+          {/* Map Toolbar Row - Properly spaced */}
           {currentView === 'home' && (
-            <div className="map-toolbar-row">
-              <div className="map-toolbar-left">
-                <select className="map-dropdown">
+            <div className="h-14 flex items-center justify-between px-4 py-3 bg-[#1e1e1e] border-t border-[#3a3a3a]">
+              <div className="flex items-center gap-4">
+                <select className="h-9 rounded border border-[#3a3a3a] bg-[#2a2a2a] px-3 text-xs text-foreground">
                   <option>Default</option>
                 </select>
-                <select className="map-dropdown" style={{ minWidth: 200 }}>
+                <select className="h-9 rounded border border-[#3a3a3a] bg-[#2a2a2a] px-3 text-xs text-foreground min-w-[200px]">
                   <option>View the current map device</option>
                 </select>
-                <button className="map-btn-circle">
-                  <span>🔄</span>
+                <button
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <span className="text-sm">🔄</span>
                 </button>
-                <button className="map-btn-circle active">
-                  <span>2D</span>
+                <button
+                  style={{
+                    height: '32px',
+                    width: '48px',
+                    backgroundColor: '#2563eb',
+                    color: 'white',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    borderRadius: '16px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+                >
+                  2D
                 </button>
               </div>
 
-              <div className="map-toolbar-right">
-                <div className="map-stat-item">
-                  Anchor: <strong>{anchors.length}</strong>
-                </div>
-                <div className="map-stat-item">
-                  Tag: <strong>{Object.keys(deviceMetrics.tag?.online || {}).length || 0}</strong>
-                </div>
-                <div className="map-stat-item">
-                  Gateway: <strong>{deviceMetrics.gateway?.online || 0}</strong>
-                </div>
-                <div className="legend-item">
-                  <span className="legend-dot" style={{ background: '#ef4444' }}></span>
-                  <span>X-axis</span>
-                </div>
-                <div className="legend-item">
-                  <span className="legend-dot" style={{ background: '#3b82f6' }}></span>
-                  <span>Y-axis</span>
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <div>Anchor: <span className="text-foreground font-medium">{anchors.length}</span></div>
+                <div>Tag: <span className="text-foreground font-medium">{Object.keys(deviceMetrics.tag?.online || {}).length || 0}</span></div>
+                <div className="ml-4">Gateway: <span className="text-foreground font-medium">{deviceMetrics.gateway?.online || 0}</span></div>
+                <div className="flex items-center gap-3 ml-4">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                    <span>X-axis</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                    <span>Y-axis</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -166,36 +235,26 @@ export function TopBar({
         </header>
 
         {/* Content */}
-        <div className="dashboard-content">
+        <main className="flex-1 overflow-hidden bg-[#2d2d30] relative">
           {children}
-        </div>
+        </main>
 
         {/* Status Bar */}
-        <footer className="status-bar">
-          <div className="status-left">
-            <div className="status-item">
-              <span>Software Version:</span>
-              <span className="status-value">v1.3.0.43</span>
+        <footer className="h-6 bg-[#0a0a0a] border-t border-[#2a2a2a] px-4 flex items-center justify-between text-[10px] text-muted-foreground">
+          <div className="flex items-center gap-4">
+            <div>
+              Software Version: <span className="text-foreground">v1.3.0.43</span>
             </div>
           </div>
-          <div className="status-right">
-            <div className="status-item">
-              <span>CPU Usage:</span>
-              <span className={`status-value ${(debugInfo?.cpu || 18.95) > 80 ? 'red' : 'green'}`}>
-                {debugInfo?.cpu ? `${debugInfo.cpu}%` : '18.95%'}
-              </span>
+          <div className="flex items-center gap-4">
+            <div>
+              CPU Usage: <span className="text-green-500 font-medium">18.95%</span>
             </div>
-            <div className="status-item">
-              <span>Memory Usage:</span>
-              <span className={`status-value ${(debugInfo?.memory || 88.4) > 80 ? 'red' : 'green'}`}>
-                {debugInfo?.memory ? `${debugInfo.memory}%` : '88.4%'}
-              </span>
+            <div>
+              Memory Usage: <span className="text-red-500 font-medium">88.4%</span>
             </div>
-            <div className="status-item">
-              <span>Disk Usage:</span>
-              <span className={`status-value ${(debugInfo?.disk || 89.29) > 80 ? 'red' : 'yellow'}`}>
-                {debugInfo?.disk ? `${debugInfo.disk}%` : '89.29%'}
-              </span>
+            <div>
+              Disk Usage: <span className="text-yellow-500 font-medium">89.29%</span>
             </div>
           </div>
         </footer>

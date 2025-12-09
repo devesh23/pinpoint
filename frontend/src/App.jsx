@@ -35,7 +35,7 @@ import { useSvgPanZoom } from './hooks/useSvgPanZoom'
 import AnchorsCard from './components/AnchorsCard'
 import Admin from './components/Admin'
 import { Kalman2D } from './kalman'
-import * as Mantine from '@mantine/core'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { IconDeviceAnalytics, IconListDetails, IconBuilding, IconSettings, IconRefresh, IconChevronDown, IconNavigation, IconLayersLinked, IconFocusCentered, IconCompass, IconArrowsMaximize, IconZoomIn, IconZoomOut, IconMaximize, IconTarget } from '@tabler/icons-react'
 
 /*
@@ -97,6 +97,14 @@ function App() {
   // Hook for SVG pan/zoom and coordinate mapping (depends on calMode evaluation order)
   // Hook for SVG pan/zoom and coordinate mapping
   const { svgViewBox, setSvgViewBox, zoom, reset, clientToUnits, normToPercent } = useSvgPanZoom({ planRef, imgRef, image, disabled: anchorMode })
+
+  // Wrapper to convert meter coordinates to percentage positions
+  const metersToPercent = (xMeters, yMeters) => {
+    const nx = xMeters / factoryWidthMeters
+    const ny = yMeters / factoryHeightMeters
+    return normToPercent(nx, ny)
+  }
+
 
   // Quick preset for mock: anchors at three corners matching backend mock IDs
   function resetCornerAnchors() {
@@ -707,7 +715,7 @@ function App() {
   }, [employees, debugInfo, softwareVersion])
 
   const mapContent = (
-    <>
+    <div className="flex flex-col h-full w-full relative">
       <div className="grid-bg"></div>
 
       {/* Floating Right Toolbar */}
@@ -741,17 +749,17 @@ function App() {
         <button className="icon-btn" onClick={reset}><IconMaximize size={18} /></button>
       </div>
 
-      <div className="plan-wrapper" ref={planRef} style={{ flex: 1, border: 'none', borderRadius: 0, background: 'transparent' }}>
-        <div className="planCanvas" ref={imgRef} style={{ height: '100%', background: 'transparent' }}
-        >
+      <div className="plan-wrapper" ref={planRef}>
+        <div className="planCanvas" ref={imgRef}>
+
           {/* SVG content rendered here */}
           {image ? (
             typeof image === 'string' ? (
-              <img ref={imgRef} src={image} alt="plan" onLoad={() => setImageLoaded(true)} />
+              <img ref={imgRef} src={image} alt="plan" onLoad={() => setImageLoaded(true)} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
             ) : image.type === 'svg' ? (
-              <div ref={imgRef} dangerouslySetInnerHTML={{ __html: image.content }} />
+              <div ref={imgRef} dangerouslySetInnerHTML={{ __html: image.content }} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }} />
             ) : (
-              <img ref={imgRef} src={image} alt="plan" onLoad={() => setImageLoaded(true)} />
+              <img ref={imgRef} src={image} alt="plan" onLoad={() => setImageLoaded(true)} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
             )
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#64748b' }}>
@@ -761,14 +769,29 @@ function App() {
 
           {image && (
             <>
-              <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'visible' }}>
-                {/* Grid lines or other overlays */}
+              <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'visible' }} viewBox="0 0 100 100" preserveAspectRatio="none">
+                {/* Path lines between tag positions */}
                 {Object.keys(paths).map(deviceId => {
                   const arr = paths[deviceId] || []
                   if (arr.length < 2) return null
-                  // ... path rendering logic ...
-                  // Simplified for brevity in this replacement, existing logic is preserved if not overwritten
-                  return null
+
+                  const points = arr.map(p => {
+                    const pos = metersToPercent(p.x, p.y)
+                    return `${pos.left},${pos.top}`
+                  }).join(' ')
+
+                  return (
+                    <polyline
+                      key={deviceId}
+                      points={points}
+                      fill="none"
+                      stroke="#ef4444"
+                      strokeWidth="2"
+                      strokeOpacity="0.6"
+                      vectorEffect="non-scaling-stroke"
+                      className="drawSegment"
+                    />
+                  )
                 })}
               </svg>
               {/* Re-inject existing overlays */}
@@ -777,7 +800,7 @@ function App() {
               <PlanAnchorsOverlay
                 anchors={anchors}
                 anchorNames={anchorNames}
-                normToPercent={normToPercent}
+                normToPercent={metersToPercent}
                 onStartDrag={(idx, e) => startAnchorDrag(idx, e)}
                 onEdit={(idx) => { const a = anchors[idx]; if (!a) return; const id = prompt('Edit beaconId', a.beaconId); if (!id) return; setAnchors(prev => prev.map((p, i) => i === idx ? { ...p, beaconId: id } : p)) }}
                 onRemove={(idx) => setAnchors(prev => prev.filter((_, i) => i !== idx))}
@@ -786,7 +809,7 @@ function App() {
               <DevicesOverlay
                 employees={employees}
                 deviceNames={deviceNames}
-                normToPercent={normToPercent}
+                normToPercent={metersToPercent}
                 onCenter={(id) => { /* TODO: center on device by adjusting viewBox in future */ }}
               />
             </>
@@ -795,7 +818,7 @@ function App() {
       </div>
 
 
-    </>
+    </div>
   )
 
   const deviceListMetricCards = [
@@ -947,8 +970,12 @@ function App() {
         factoryWidthMeters={factoryWidthMeters}
         factoryHeightMeters={factoryHeightMeters}
       >
-        {adminOpen && (
-          <Mantine.Card radius="md" p="md" className="dashboard-panel-card">
+        <Dialog open={adminOpen} onOpenChange={setAdminOpen}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="sr-only">
+              <DialogTitle>Admin Panel</DialogTitle>
+              <DialogDescription>Configure application settings</DialogDescription>
+            </DialogHeader>
             <Admin
               anchors={anchors}
               setAnchors={setAnchors}
@@ -957,9 +984,14 @@ function App() {
               deviceNames={deviceNames}
               setDeviceNames={setDeviceNames}
               factoryWidthMeters={factoryWidthMeters}
-              setFactoryWidthMeters={setFactoryWidthMeters}
               factoryHeightMeters={factoryHeightMeters}
+              setFactoryWidthMeters={setFactoryWidthMeters}
               setFactoryHeightMeters={setFactoryHeightMeters}
+              anchorHeight={anchorHeight}
+              setAnchorHeight={setAnchorHeight}
+              tagHeight={tagHeight}
+              setTagHeight={setTagHeight}
+              onClose={() => setAdminOpen(false)}
               apiKey={apiKey}
               setApiKey={setApiKey}
               pollUrl={pollUrl}
@@ -973,10 +1005,9 @@ function App() {
               fetchNow={fetchPositions}
               clearLines={clearLines}
               clearAllLines={clearAllLines}
-              onClose={() => setAdminOpen(false)}
             />
-          </Mantine.Card>
-        )}
+          </DialogContent>
+        </Dialog>
 
         {currentPageContent}
       </TopBar>

@@ -9,19 +9,19 @@ import React from 'react'
  * - image: null | string | { type:'svg', width:number, height:number }
  * - svgViewBox: { x:number, y:number, w:number, h:number } | null
  */
-export default function MiniMap({ paths, anchors, image, svgViewBox }){
+export default function MiniMap({ paths, anchors, image, svgViewBox }) {
   return (
-    <div style={{ position:'absolute', right:16, bottom:16, zIndex:12, background:'rgba(255,255,255,0.9)', border:'1px solid rgba(0,0,0,0.06)', borderRadius:8, padding:6 }}>
+    <div className="absolute right-4 bottom-4 z-10 bg-background/90 border rounded-lg p-1.5 shadow-sm">
       <svg width="160" height="120" viewBox="0 0 100 75">
         {/* path trails */}
-        {Object.keys(paths||{}).map(deviceId => {
+        {Object.keys(paths || {}).map(deviceId => {
           const arr = paths[deviceId] || []
-          if(arr.length < 2) return null
-          const maxSeg = Math.min(arr.length-1, 120)
+          if (arr.length < 2) return null
+          const maxSeg = Math.min(arr.length - 1, 120)
           const start = arr.length - 1 - maxSeg
           const segs = []
-          for(let i=start;i<arr.length-1;i++){
-            const a = arr[i], b = arr[i+1]
+          for (let i = start; i < arr.length - 1; i++) {
+            const a = arr[i], b = arr[i + 1]
             const x1 = (a.x) * 100, y1 = (a.y) * 75
             const x2 = (b.x) * 100, y2 = (b.y) * 75
             const t = (i - start) / maxSeg
@@ -31,17 +31,17 @@ export default function MiniMap({ paths, anchors, image, svgViewBox }){
           return <g key={`mg-${deviceId}`}>{segs}</g>
         })}
         {/* anchors */}
-        {(anchors||[]).map(a=> (
-          <circle key={`ma-${a.beaconId}`} cx={(a.x*100)} cy={(a.y*75)} r="2.5" fill="#1d4ed8" />
+        {(anchors || []).map(a => (
+          <circle key={`ma-${a.beaconId}`} cx={(a.x * 100)} cy={(a.y * 75)} r="2.5" fill="#1d4ed8" />
         ))}
         {/* viewBox rect for inline SVGs */}
-        {image && image.type==='svg' && svgViewBox && (
-          (()=>{
-            const nx = svgViewBox.x / (image.width||1)
-            const ny = svgViewBox.y / (image.height||1)
-            const nw = svgViewBox.w / (image.width||1)
-            const nh = svgViewBox.h / (image.height||1)
-            return <rect x={nx*100} y={ny*75} width={nw*100} height={nh*75} fill="none" stroke="#6b5e4a" strokeWidth="1" />
+        {image && image.type === 'svg' && svgViewBox && (
+          (() => {
+            const nx = svgViewBox.x / (image.width || 1)
+            const ny = svgViewBox.y / (image.height || 1)
+            const nw = svgViewBox.w / (image.width || 1)
+            const nh = svgViewBox.h / (image.height || 1)
+            return <rect x={nx * 100} y={ny * 75} width={nw * 100} height={nh * 75} fill="none" stroke="#6b5e4a" strokeWidth="1" />
           })()
         )}
       </svg>

@@ -1,13 +1,12 @@
 import React from 'react'
-import { MantineProvider } from '@mantine/core'
 import { render } from '@testing-library/react'
 
-function Providers({ children }){
+function Providers({ children }) {
   return (
-    <MantineProvider withNormalizeCSS withGlobalStyles>{children}</MantineProvider>
+    <>{children}</>
   )
 }
 
-export function renderWithProviders(ui, options){
+export function renderWithProviders(ui, options) {
   return render(ui, { wrapper: Providers, ...options })
 }
